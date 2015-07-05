@@ -1,0 +1,144 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\Airly">
+      <UniqueIdentifier>{0fb659a2-b0b4-41d6-9b5b-f54ab2c14c86}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Airly">
+      <UniqueIdentifier>{5571120d-1354-40f7-a8ed-f6496d71d923}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\airly\Camera.h">
+      <Filter>Header Files\Airly</Filter>
+    </ClInclude>
+    <ClInclude Include="..\airly\Color.h">
+      <Filter>Header Files\Airly</Filter>
+    </ClInclude>
+    <ClInclude Include="..\airly\OmniLight.h">
+      <Filter>Header Files\Airly</Filter>
+    </ClInclude>
+    <ClInclude Include="..\airly\Material.h">
+      <Filter>Header Files\Airly</Filter>
+    </ClInclude>
+    <ClInclude Include="..\airly\Plane.h">
+      <Filter>Header Files\Airly</Filter>
+    </ClInclude>
+    <ClInclude Include="..\airly\Quaternion.h">
+      <Filter>Header Files\Airly</Filter>
+    </ClInclude>
+    <ClInclude Include="..\airly\Scene.h">
+      <Filter>Header Files\Airly</Filter>
+    </ClInclude>
+    <ClInclude Include="..\airly\SceneObject.h">
+      <Filter>Header Files\Airly</Filter>
+    </ClInclude>
+    <ClInclude Include="..\airly\Sphere.h">
+      <Filter>Header Files\Airly</Filter>
+    </ClInclude>
+    <ClInclude Include="..\airly\Vector3.h">
+      <Filter>Header Files\Airly</Filter>
+    </ClInclude>
+    <ClInclude Include="..\airly\Texture.h">
+      <Filter>Header Files\Airly</Filter>
+    </ClInclude>
+    <ClInclude Include="..\airly\Triangle.h">
+      <Filter>Header Files\Airly</Filter>
+    </ClInclude>
+    <ClInclude Include="..\airly\Skybox.h">
+      <Filter>Header Files\Airly</Filter>
+    </ClInclude>
+    <ClInclude Include="..\airly\Vertex.h">
+      <Filter>Header Files\Airly</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Airly\airly.h">
+      <Filter>Header Files\Airly</Filter>
+    </ClInclude>
+    <ClInclude Include="..\airly\Matrix33.h">
+      <Filter>Header Files\Airly</Filter>
+    </ClInclude>
+    <ClInclude Include="..\airly\image_file_headers.h">
+      <Filter>Header Files\Airly</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\airly\Camera.cpp">
+      <Filter>Source Files\Airly</Filter>
+    </ClCompile>
+    <ClCompile Include="..\airly\Color.cpp">
+      <Filter>Source Files\Airly</Filter>
+    </ClCompile>
+    <ClCompile Include="..\airly\OmniLight.cpp">
+      <Filter>Source Files\Airly</Filter>
+    </ClCompile>
+    <ClCompile Include="..\airly\Material.cpp">
+      <Filter>Source Files\Airly</Filter>
+    </ClCompile>
+    <ClCompile Include="..\airly\Plane.cpp">
+      <Filter>Source Files\Airly</Filter>
+    </ClCompile>
+    <ClCompile Include="..\airly\Quaternion.cpp">
+      <Filter>Source Files\Airly</Filter>
+    </ClCompile>
+    <ClCompile Include="..\airly\Scene.cpp">
+      <Filter>Source Files\Airly</Filter>
+    </ClCompile>
+    <ClCompile Include="..\airly\SceneObject.cpp">
+      <Filter>Source Files\Airly</Filter>
+    </ClCompile>
+    <ClCompile Include="..\airly\Sphere.cpp">
+      <Filter>Source Files\Airly</Filter>
+    </ClCompile>
+    <ClCompile Include="..\airly\Vector3.cpp">
+      <Filter>Source Files\Airly</Filter>
+    </ClCompile>
+    <ClCompile Include="..\airly\Texture.cpp">
+      <Filter>Source Files\Airly</Filter>
+    </ClCompile>
+    <ClCompile Include="..\airly\Triangle.cpp">
+      <Filter>Source Files\Airly</Filter>
+    </ClCompile>
+    <ClCompile Include="..\airly\Skybox.cpp">
+      <Filter>Source Files\Airly</Filter>
+    </ClCompile>
+    <ClCompile Include="..\airly\Vertex.cpp">
+      <Filter>Source Files\Airly</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Airly\airly.cpp">
+      <Filter>Source Files\Airly</Filter>
+    </ClCompile>
+    <ClCompile Include="..\airly\Matrix33.cpp">
+      <Filter>Source Files\Airly</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ClassDiagram.cd" />
+  </ItemGroup>
+</Project>
