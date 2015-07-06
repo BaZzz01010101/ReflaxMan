@@ -40,5 +40,7 @@ public:
   Vector3 operator - () const;
 
   Vector3 reflect(const Vector3 & Norm) const;
+
+  static Vector3 randomInsideSphere(float radius);
 };
 
