@@ -176,13 +176,11 @@ Vector3 Vector3::reflect(const Vector3 & norm) const
 Vector3 Vector3::randomInsideSphere(float radius)
 {
   Vector3 v;
-  do
-  {
-    v.x = (float(rand()) / RAND_MAX - 0.5f) * 2.f;
-    v.y = (float(rand()) / RAND_MAX - 0.5f) * 2.f;
-    v.z = (float(rand()) / RAND_MAX - 0.5f) * 2.f;
-  }
-  while (v.sqLength() > 1.0f);
+
+  const float a = 0.577350f;  // 1 / sqrt(3)
+  v.x = float(rand()) / (RAND_MAX * a * 2.f) - a;
+  v.y = float(rand()) / (RAND_MAX * a * 2.f) - a;
+  v.z = float(rand()) / (RAND_MAX * a * 2.f) - a;
 
   return v * radius;
 }
