@@ -12,7 +12,7 @@ wchar_t exeFullPath[MAX_PATH];
 float scrnshotProgress = -1;
 DWORD scrnshotStartTicks = 0;
 
-void print(HDC dc, int x, int y, char* format, ...)
+void print(HDC dc, int x, int y, const char* format, ...)
 {
   const int buf_len = 256;
   char buffer[buf_len];
@@ -67,8 +67,8 @@ void OnResize(int width, int height)
 
   BITMAPINFO bmi;
   bmi.bmiHeader.biSize = sizeof(bmi.bmiHeader);
-  bmi.bmiHeader.biWidth = max(width, 1);
-  bmi.bmiHeader.biHeight = max(height, 1);
+  bmi.bmiHeader.biWidth = (width >= 1 ? width : 1);
+  bmi.bmiHeader.biHeight = (height >= 1 ? height : 1);
   bmi.bmiHeader.biPlanes = 1;
   bmi.bmiHeader.biBitCount = 32;
   bmi.bmiHeader.biCompression = BI_RGB;
@@ -180,22 +180,22 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
   return 0;
 }
 
-int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow)
+int APIENTRY _WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPCSTR lpCmdLine, int nCmdShow)
 {
   UNREFERENCED_PARAMETER(hPrevInstance);
   UNREFERENCED_PARAMETER(lpCmdLine);
 
-  font = CreateFont(-9, -4, 0, 0, FW_NORMAL, false, false, false, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, FIXED_PITCH, L"Arial");
+  font = CreateFontW(-9, -4, 0, 0, FW_NORMAL, false, false, false, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, FIXED_PITCH, L"Arial");
 
   wchar_t exeFullName[MAX_PATH];
   wchar_t* lpExeName;
-  GetModuleFileName(NULL, exeFullName, MAX_PATH);
-  GetFullPathName(exeFullName, MAX_PATH, exeFullPath, &lpExeName);
+  GetModuleFileNameW(NULL, exeFullName, MAX_PATH);
+  GetFullPathNameW(exeFullName, MAX_PATH, exeFullPath, &lpExeName);
   *lpExeName = '\0';
 
   scene = new Scene(exeFullPath);
 
-  WNDCLASSEX wcex;
+  WNDCLASSEXW wcex;
   wcex.cbSize = sizeof(wcex);
   wcex.style = CS_HREDRAW | CS_VREDRAW;
   wcex.lpfnWndProc = WindowProc;
@@ -209,9 +209,9 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
   wcex.lpszClassName = L"clReflaxWindow";
   wcex.hIconSm = NULL;
 
-  RegisterClassEx(&wcex);
+  RegisterClassExW(&wcex);
 
-  HWND hWnd = CreateWindow(L"clReflaxWindow", L"Reflax", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 640, 480, NULL, NULL, hInstance, NULL);
+  HWND hWnd = CreateWindowW(L"clReflaxWindow", L"Reflax", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 640, 480, NULL, NULL, hInstance, NULL);
 
   if (hWnd)
   {

@@ -108,7 +108,7 @@ Color Color::operator *(const Color & f) const
 
 ARGB Color::argb() const
 {
-  return (unsigned char(r * 255) << 16) | unsigned char(g * 255) << 8 | unsigned char(b * 255);
+  return (unsigned char)(r * 255) << 16 | (unsigned char)(g * 255) << 8 | (unsigned char)(b * 255);
 }
 
 void Color::clamp()
