@@ -71,7 +71,7 @@ Color Scene::tracePixel(const int x, const int y, const int aan) const
   for (int aay = 0; aay < aan; aay++)
   {
     Color colorMul = { 1.0f, 1.0f, 1.0f };
-    Vector3 randDir = Vector3((0.5f - float(rand()) / RAND_MAX), (0.5f - float(rand()) / RAND_MAX), (0.5f - float(rand()) / RAND_MAX));
+    Vector3 randDir = Vector3::randomInsideSphere(0.5f);
     Color pixelColor = { 0.0f, 0.0f, 0.0f };
     Vector3 origin = camera.eye;
     Vector3 ray(flx + float(aax) / aan,
