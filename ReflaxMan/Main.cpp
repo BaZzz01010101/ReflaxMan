@@ -1,6 +1,4 @@
-// ReflaxMan.cpp : Defines the entry point for the console application.
-//
-#include <CoreWindow.h>
+#include <windows.h>
 #include "stdafx.h"
 #include "..\airly\airly.h"
 #include "..\airly\Scene.h"
@@ -81,7 +79,7 @@ void OnResize(int width, int height)
   bmi.bmiHeader.biClrImportant = 0;
 
   memDC = CreateCompatibleDC(NULL);
-  bitmap = CreateDIBSection(NULL, &bmi, DIB_RGB_COLORS, (void**)&pixels, NULL, NULL);
+  bitmap = CreateDIBSection(NULL, &bmi, DIB_RGB_COLORS, (void**)&pixels, NULL, 0);
 
   if (memDC && bitmap)
       SelectObject(memDC, bitmap);
