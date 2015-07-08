@@ -14,9 +14,10 @@ private:
   typedef std::vector<OmniLight*> SCENE_LIGHTS;
   SCENE_OBJECTS sceneObjects;
   SCENE_LIGHTS sceneLights;
-  Color mainLightColor;
+  Color envColor;
   Skybox skybox;
   Texture planeTexture;
+
 public:
   Color diffLightColor;
   float diffLightPower;

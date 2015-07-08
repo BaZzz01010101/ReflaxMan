@@ -203,6 +203,12 @@ Color Texture::getTexelColor(const int x, const int y) const
   assert(y >= 0);
   assert(y < height);
 
+  // return black texture if out of bounds or gray chess if texture is empty
+  if (x < 0 || x >= width || y < 0 || y >= height)
+    return Color(0, 0, 0);
+  else if(colorBuf.empty())
+    return (((x * 50 / width) % 2) ^ ((y * 50 / width) % 2)) ? Color(0.5f, 0.5f, 0.5f) : Color(0.75f, 0.75f, 0.75f);
+
   return Color(colorBuf[clamp(x, 0, width - 1) + width * clamp(y, 0, height - 1)]);
 }
 
@@ -213,11 +219,18 @@ Color Texture::getTexelColor(const float u, const float v) const
   assert(v >= 0.0f);
   assert(v <= 1.0f);
 
+  // return black texture if out of bounds or gray chess if texture is empty
+  if (u < 0.0f || u > 1.0f || v < 0.0f || v > 1.0f)
+    return Color(0.0f, 0.0f, 0.0f);
+  else if (colorBuf.empty())
+    return ((int(u * 50) % 2) ^ (int(v * 50) % 2)) ? Color(0.5f, 0.5f, 0.5f) : Color(0.75f, 0.75f, 0.75f);
+
   float fx = clamp(u, 0.0f, 1.0f - FLT_EPSILON) * width;
   float fy = clamp(v, 0.0f, 1.0f - FLT_EPSILON) * height;
   int x = int(fx);
   int y = int(fy);
 
+  // bilinear filtering
   if (x < width - 1 && y < height - 1)
   {
     Color color00 = getTexelColor(x, y);

@@ -4,6 +4,8 @@
 
 Skybox::Skybox()
 {
+  halfTileWidth = 1.0f / 8.0f - FLT_EPSILON;
+  halfTileHeight = 1.0f / 6.0f - FLT_EPSILON;
 }
 
 Skybox::Skybox(const wchar_t * textureFileName)
@@ -27,8 +29,8 @@ bool Skybox::loadTexture(const wchar_t* fileName)
   }
   else
   {
-    halfTileWidth = 0.0f;
-    halfTileHeight = 0.0f;
+    halfTileWidth = 1.0f / 8.0f - FLT_EPSILON;
+    halfTileHeight = 1.0f / 6.0f - FLT_EPSILON;
 
     return false;
   }

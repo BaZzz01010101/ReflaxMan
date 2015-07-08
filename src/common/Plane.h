@@ -4,11 +4,12 @@
 
 class Plane : public SceneObject
 {
-public:
+private:
   Vector3 pos;
   Vector3 norm;
   Material material;
 
+public:
   Plane();
   Plane(const Plane & plane);
   Plane & operator =(const Plane & plane);

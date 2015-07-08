@@ -8,8 +8,6 @@ class Triangle : public SceneObject
 {
 private:
   Matrix33 axTrans, tuvTrans;
-
-public:
   Vector3 v[3]; // vertexes
   float tu[3];  // vertexes texture u-coords
   float tv[3];  // vertexes texture v-coords
@@ -17,6 +15,7 @@ public:
   Material material;
   const Texture * texture;
 
+public:
   Triangle();
   Triangle(const Triangle & Triangle);
   Triangle & operator =(const Triangle & Triangle);

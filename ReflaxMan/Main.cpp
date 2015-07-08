@@ -100,11 +100,13 @@ void OnPaint(HWND hWnd, HDC hdc)
     int y = 0;
     print(hdc, 0, y, "Saving screenshot");
     y += tm.tmHeight;
-    print(hdc, 0, y, "Progress: %.2f %%", scrnshotProgress);
 
+    print(hdc, 0, y, "Progress: %.2f %%", scrnshotProgress);
     y += tm.tmHeight;
+
     DWORD ticksPassed = GetTickCount() - scrnshotStartTicks;
-    DWORD ticksLeft = DWORD(ticksPassed * 100 / scrnshotProgress);
+    DWORD ticksLeft = DWORD(ticksPassed * 100 / scrnshotProgress) - ticksPassed;
+
     int hr = ticksLeft / 3600000;
     ticksLeft = ticksLeft % 3600000;
     int min = ticksLeft / 60000;
@@ -254,16 +256,16 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
         if (GetKeyState(VK_F2) & 0x8000)
         {
+          Scene shotScene(exeFullPath);
+          shotScene.camera = scene->camera;
           const int w = 1680;
           const int h = 1050;
+          Texture shot(w, h);
           const int aan = 64;
 
-          int prevWidth = scene->screenWidth;
-          int prevHeight = scene->screenHeight;
-          scene->screenWidth = w;
-          scene->screenHeight = h;
-          Texture tex(w, h);
-          ARGB * pixels = tex.getColorBuffer();
+          shotScene.screenWidth = w;
+          shotScene.screenHeight = h;
+          ARGB * pixels = shot.getColorBuffer();
 
           scrnshotStartTicks = GetTickCount();
           DWORD lastTicks = scrnshotStartTicks;
@@ -272,7 +274,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
           {
             for (int x = 0; x < w; ++x)
             {
-              pixels[x + y * w] = scene->tracePixel(x, y, aan).argb();
+              pixels[x + y * w] = shotScene.tracePixel(x, y, aan).argb();
 
               if (int(GetTickCount() - lastTicks) > 100)
               {
@@ -299,10 +301,8 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
           GetSystemTimeAsFileTime(&ft);
           swprintf_s(name, bufSize, L"scrnshoot_%08X%08X.bmp", ft.dwHighDateTime, ft.dwLowDateTime);
           std::wstring str = std::wstring(exeFullPath) + name;
-          tex.saveToFile(str.c_str());
+          shot.saveToFile(str.c_str());
 
-          scene->screenWidth = prevWidth;
-          scene->screenHeight = prevHeight;
           scrnshotProgress = -1;
         }
         InvalidateRect(hWnd, NULL, false);

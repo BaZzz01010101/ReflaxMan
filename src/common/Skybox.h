@@ -8,10 +8,9 @@ class Skybox
 private:
   float halfTileWidth;
   float halfTileHeight;
-
-public:
   Texture texture;
 
+public:
   Skybox();
   Skybox(const wchar_t * textureFileName);
   ~Skybox();

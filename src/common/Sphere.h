@@ -5,12 +5,13 @@
 
 class Sphere : public SceneObject
 {
-public:
+private:
   Vector3 center;
   float radius;
   float sqRadius;
   Material material;
 
+public:
   Sphere();
   Sphere(const Sphere & sphere);
   Sphere & operator =(const Sphere & sphere);

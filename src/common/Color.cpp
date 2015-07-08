@@ -91,6 +91,11 @@ Color Color::operator *(const float & f) const
   return Color(r * f, g * f, b * f);
 }
 
+Color operator *(const float & f, const Color & c)
+{
+  return Color(c.r * f, c.g * f, c.b * f);
+}
+
 Color Color::operator /(const float & f) const
 {
   assert(fabs(f) > VERY_SMALL_NUMBER);

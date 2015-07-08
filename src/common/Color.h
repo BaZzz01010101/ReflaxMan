@@ -39,6 +39,7 @@ public:
   Color & operator *=(const Color & c);
 
   Color operator *(const float & f) const;
+  friend Color operator *(const float & f, const Color & c);
   Color operator /(const float & f) const;
 
   Color operator +(const Color & c) const;
