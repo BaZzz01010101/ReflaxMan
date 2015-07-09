@@ -9,14 +9,15 @@ typedef uint32_t ARGB;
 #define BLUE_SHIFT  0
 #define ALPHA_MASK  ((ARGB) 0xff << ALPHA_SHIFT)
 #define MAKEARGB(a, r, g, b) \
-  (((ARGB)(unsigned char(a) & 0xff) << ALPHA_SHIFT) | \
-  ((ARGB)(unsigned char(r) & 0xff) << RED_SHIFT) | \
-  ((ARGB)(unsigned char(g) & 0xff) << GREEN_SHIFT) | \
-  ((ARGB)(unsigned char(b) & 0xff) << BLUE_SHIFT))
-#define ARGB_RED(argb) ((argb >> RED_SHIFT) & 0xFF)
-#define ARGB_GREEN(argb) ((argb >> GREEN_SHIFT) & 0xFF)
-#define ARGB_BLUE(argb) ((argb >> BLUE_SHIFT) & 0xFF)
-#define ARGB_ALPHA(argb) ((argb >> ALPHA_SHIFT) & 0xFF)
+  ((ARGB)(((unsigned char)(a) & 0xff) << ALPHA_SHIFT | \
+          ((unsigned char)(r) & 0xff) << RED_SHIFT | \
+          ((unsigned char)(g) & 0xff) << GREEN_SHIFT | \
+          ((unsigned char)(b) & 0xff) << BLUE_SHIFT))
+
+#define ARGB_RED(argb)    ((argb >> RED_SHIFT) & 0xFF)
+#define ARGB_GREEN(argb)  ((argb >> GREEN_SHIFT) & 0xFF)
+#define ARGB_BLUE(argb)   ((argb >> BLUE_SHIFT) & 0xFF)
+#define ARGB_ALPHA(argb)  ((argb >> ALPHA_SHIFT) & 0xFF)
 
 class Color
 {

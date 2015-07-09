@@ -22,7 +22,10 @@ public:
   Triangle(const Vector3 & v1, const Vector3 & v2, const Vector3 & v3, const Material & material);
   ~Triangle();
 
-  void setTexture(const Texture * texture, const float u1, const float v1, const float u2, const float v2, const float u3, const float v3);
-  bool trace(const Vector3 & origin, const Vector3 & ray, Vector3 * const out_drop, Vector3 * const out_norm, Vector3 * const out_reflected_ray, float * const out_distance, Material * const out_drop_material) const;
+  void setTexture(const Texture * texture, const float u1, const float v1, const float u2, const float v2, 
+    const float u3, const float v3);
+
+  bool trace(const Vector3 & origin, const Vector3 & ray, Vector3 * const out_drop, Vector3 * const out_norm, 
+    Vector3 * const out_reflected_ray, float * const out_distance, Material * const out_drop_material) const;
 };
 

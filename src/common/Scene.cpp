@@ -16,12 +16,12 @@ Scene::Scene(const wchar_t * exePath)
 
   camera = Camera(Vector3(7.427f, 3.494f, -3.773f), Vector3(6.5981f, 3.127f, -3.352f), Vector3(-0.320f, 0.930f, 0.180f), 1.05f);
 
-  sceneLights.push_back(new OmniLight(Vector3(11.8e9f, 4.26e9f, 3.08e9f), 6.96e8f, Color(1.0f, 1.0f, 0.95f), 0.85f));
+  sceneLights.push_back(new OmniLight(Vector3(11.8e9f, 4.26e9f, 3.08e9f), 6.96e8f, Color(1.0f, 1.0f, 0.95f), 1.0f));
   //sceneLights.push_back(new OmniLight(Vector3(-1.26e9f, 11.8e9f, 1.08e9f), 6.96e8f, Color(1.0f, 0.5f, 0.5f), 0.2f));
   //sceneLights.push_back(new OmniLight(Vector3(11.8e9f, 4.26e9f, 3.08e9f), 6.96e9f, Color(1.0f, 1.0f, 0.95f), 0.85f));
 
   diffLightColor = { 0.95f, 0.95f, 1.0f };
-  diffLightPower = 0.3f;
+  diffLightPower = 0.15f;
 
 // set environment color to correct skybox texture depending on summary scene illumination
   envColor = diffLightColor * diffLightPower;
@@ -41,11 +41,11 @@ Scene::Scene(const wchar_t * exePath)
 
   Triangle* tr = NULL;
 
-  tr = new Triangle(Vector3(-14.0f, 0.0f, -10.0f), Vector3(-14.0f, 0.0f, 10.0f), Vector3(14.0f, 0.0f, -10.0f), Material(Material::mtDielectric, Color(1.0f, 1.0f, 1.0f), 0.9f, 0.0f));
+  tr = new Triangle(Vector3(-14.0f, 0.0f, -10.0f), Vector3(-14.0f, 0.0f, 10.0f), Vector3(14.0f, 0.0f, -10.0f), Material(Material::mtDielectric, Color(1.0f, 1.0f, 1.0f), 0.95f, 0.0f));
   tr->setTexture(&planeTexture, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f);
   sceneObjects.push_back(tr);
 
-  tr = new Triangle(Vector3(-14.0f, 0.0f, 10.0f), Vector3(14.0f, 0.0f, 10.0f), Vector3(14.0f, 0.0f, -10.0f), Material(Material::mtDielectric, Color(1.0f, 1.0f, 1.0f), 0.9f, 0.0f));
+  tr = new Triangle(Vector3(-14.0f, 0.0f, 10.0f), Vector3(14.0f, 0.0f, 10.0f), Vector3(14.0f, 0.0f, -10.0f), Material(Material::mtDielectric, Color(1.0f, 1.0f, 1.0f), 0.95f, 0.0f));
   tr->setTexture(&planeTexture, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f);
   sceneObjects.push_back(tr);
 }

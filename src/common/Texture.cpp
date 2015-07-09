@@ -5,6 +5,8 @@
 
 Texture::Texture()
 {
+  width = 0;
+  height = 0;
 }
 
 Texture::Texture(const Texture & texture)
@@ -30,6 +32,8 @@ Texture::Texture(const int width, const int height)
 
 Texture::Texture(const wchar_t* filename)
 {
+  width = 0;
+  height = 0;
   bool success = loadFromFile(filename);
   assert(success);
 }
@@ -82,7 +86,7 @@ bool Texture::loadFromTGAFile(const wchar_t * fileName)
 
   if (!retVal)
   {
-    colorBuf.resize(1);
+    colorBuf.resize(0);
     width = 0;
     height = 0;
   }
@@ -223,7 +227,7 @@ Color Texture::getTexelColor(const float u, const float v) const
   if (u < 0.0f || u > 1.0f || v < 0.0f || v > 1.0f)
     return Color(0.0f, 0.0f, 0.0f);
   else if (colorBuf.empty())
-    return ((int(u * 50) % 2) ^ (int(v * 50) % 2)) ? Color(0.5f, 0.5f, 0.5f) : Color(0.75f, 0.75f, 0.75f);
+      return ((int(u * 50) % 2) ^ (int(v * 50) % 2)) ? Color(0.5f, 0.5f, 0.5f) : Color(0.75f, 0.75f, 0.75f);
 
   float fx = clamp(u, 0.0f, 1.0f - FLT_EPSILON) * width;
   float fy = clamp(v, 0.0f, 1.0f - FLT_EPSILON) * height;

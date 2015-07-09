@@ -46,7 +46,8 @@ Triangle::~Triangle()
 {
 }
 
-bool Triangle::trace(const Vector3 & origin, const Vector3 & ray, Vector3 * const out_drop, Vector3 * const out_norm, Vector3 * const out_reflected_ray, float * const out_distance, Material * const out_drop_material) const
+bool Triangle::trace(const Vector3 & origin, const Vector3 & ray, Vector3 * const out_drop, Vector3 * const out_norm, 
+  Vector3 * const out_reflected_ray, float * const out_distance, Material * const out_drop_material) const
 {
   Vector3 axOrigin = axTrans * (origin - v[0]);
   Vector3 axRay = axTrans * ray;
@@ -102,7 +103,8 @@ bool Triangle::trace(const Vector3 & origin, const Vector3 & ray, Vector3 * cons
   return false;
 }
 
-void Triangle::setTexture(const Texture * texture, const float tu1, const float tv1, const float tu2, const float tv2, const float tu3, const float tv3)
+void Triangle::setTexture(const Texture * texture, const float tu1, const float tv1, const float tu2, const float tv2, 
+  const float tu3, const float tv3)
 {
   this->texture = texture;
   tu[0] = tu1; tu[1] = tu2; tu[2] = tu3;
