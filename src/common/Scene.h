@@ -25,7 +25,7 @@ public:
   int screenWidth;
   int screenHeight;
 
-  Scene(const wchar_t* exePath);
+  Scene(const char* exePath);
   ~Scene();
 
   Color tracePixel(const int x, const int y, const int aa) const;

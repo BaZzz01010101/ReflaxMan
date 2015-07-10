@@ -8,7 +8,7 @@ Skybox::Skybox()
   halfTileHeight = 1.0f / 6.0f - FLT_EPSILON;
 }
 
-Skybox::Skybox(const wchar_t * textureFileName)
+Skybox::Skybox(const char * textureFileName)
 {
   bool success = loadTexture(textureFileName);
   assert(success);
@@ -18,7 +18,7 @@ Skybox::~Skybox()
 {
 }
 
-bool Skybox::loadTexture(const wchar_t* fileName)
+bool Skybox::loadTexture(const char* fileName)
 {
   if (texture.loadFromFile(fileName))
   {

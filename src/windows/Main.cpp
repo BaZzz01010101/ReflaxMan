@@ -8,7 +8,7 @@ HFONT font = NULL;
 HDC memDC = NULL;
 HBITMAP bitmap = NULL;
 DWORD * pixels = NULL;
-wchar_t exeFullPath[MAX_PATH];
+char exeFullPath[MAX_PATH];
 float scrnshotProgress = -1;
 DWORD scrnshotStartTicks = 0;
 
@@ -19,13 +19,15 @@ void print(HDC dc, int x, int y, const char* format, ...)
 
   va_list args;
   va_start(args, format);
-  vsprintf_s(buffer, buf_len, format, args);
-  perror(buffer);
+  vsprintf(buffer, format, args);
+  //vsprintf_s(buffer, buf_len, format, args);
+  //perror(buffer);
   va_end(args);
 
   SetBkMode(dc, TRANSPARENT);
   SetTextColor(dc, 0xFFFFFF);
   TextOutA(dc, x, y, buffer, strlen(buffer));
+  //TextOutA(dc, x, y, format, strlen(format));
 }
 
 bool DrawScene(HWND hWnd, HDC hdc)
@@ -182,22 +184,22 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
   return 0;
 }
 
-int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
+int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
   UNREFERENCED_PARAMETER(hPrevInstance);
   UNREFERENCED_PARAMETER(lpCmdLine);
 
-  font = CreateFontW(-9, -4, 0, 0, FW_NORMAL, false, false, false, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, FIXED_PITCH, L"Arial");
+  font = CreateFontA(-9, -4, 0, 0, FW_NORMAL, false, false, false, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, FF_DONTCARE, "Aria");
 
-  wchar_t exeFullName[MAX_PATH];
-  wchar_t* lpExeName;
-  GetModuleFileNameW(NULL, exeFullName, MAX_PATH);
-  GetFullPathNameW(exeFullName, MAX_PATH, exeFullPath, &lpExeName);
+  char exeFullName[MAX_PATH];
+  char* lpExeName;
+  GetModuleFileNameA(NULL, exeFullName, MAX_PATH);
+  GetFullPathNameA(exeFullName, MAX_PATH, exeFullPath, &lpExeName);
   *lpExeName = '\0';
 
   scene = new Scene(exeFullPath);
 
-  WNDCLASSEXW wcex;
+  WNDCLASSEXA wcex;
   wcex.cbSize = sizeof(wcex);
   wcex.style = CS_HREDRAW | CS_VREDRAW;
   wcex.lpfnWndProc = WindowProc;
@@ -208,12 +210,12 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
   wcex.hCursor = NULL;
   wcex.hbrBackground = (HBRUSH)CreateSolidBrush(0xFF80FF);
   wcex.lpszMenuName = NULL;
-  wcex.lpszClassName = L"clReflaxWindow";
+  wcex.lpszClassName = "clReflaxWindow";
   wcex.hIconSm = NULL;
 
-  RegisterClassExW(&wcex);
+  RegisterClassExA(&wcex);
 
-  HWND hWnd = CreateWindowW(L"clReflaxWindow", L"Reflax", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 640, 480, NULL, NULL, hInstance, NULL);
+  HWND hWnd = CreateWindowA("clReflaxWindow", "Reflax", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 640, 480, NULL, NULL, hInstance, NULL);
 
   if (hWnd)
   {
@@ -297,10 +299,10 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
           FILETIME ft;
           const int bufSize = 256;
-          wchar_t name[bufSize];
+          char name[bufSize];
           GetSystemTimeAsFileTime(&ft);
-          swprintf_s(name, bufSize, L"scrnshoot_%08X%08X.bmp", ft.dwHighDateTime, ft.dwLowDateTime);
-          std::wstring str = std::wstring(exeFullPath) + name;
+          sprintf_s(name, bufSize, "scrnshoot_%08X%08X.bmp", ft.dwHighDateTime, ft.dwLowDateTime);
+          std::string str = std::string(exeFullPath) + name;
           shot.saveToFile(str.c_str());
 
           scrnshotProgress = -1;

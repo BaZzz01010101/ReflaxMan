@@ -5,10 +5,10 @@
 #include "Triangle.h"
 
 
-Scene::Scene(const wchar_t * exePath) 
+Scene::Scene(const char * exePath) 
 {
-  std::wstring skyboxTextureFileName = std::wstring(exePath) + L".\\textures\\skybox.tga";
-  std::wstring planeTextureFileName = std::wstring(exePath) + L".\\textures\\himiya.tga";
+  std::string skyboxTextureFileName = std::string(exePath) + ".\\textures\\skybox.tga";
+  std::string planeTextureFileName = std::string(exePath) + ".\\textures\\himiya.tga";
   bool retVal = skybox.loadTexture(skyboxTextureFileName.c_str());
   assert(retVal);
   retVal = planeTexture.loadFromFile(planeTextureFileName.c_str());
@@ -20,7 +20,7 @@ Scene::Scene(const wchar_t * exePath)
   //sceneLights.push_back(new OmniLight(Vector3(-1.26e9f, 11.8e9f, 1.08e9f), 6.96e8f, Color(1.0f, 0.5f, 0.5f), 0.2f));
   //sceneLights.push_back(new OmniLight(Vector3(11.8e9f, 4.26e9f, 3.08e9f), 6.96e9f, Color(1.0f, 1.0f, 0.95f), 0.85f));
 
-  diffLightColor = { 0.95f, 0.95f, 1.0f };
+  diffLightColor = Color(0.95f, 0.95f, 1.0f);
   diffLightPower = 0.15f;
 
 // set environment color to correct skybox texture depending on summary scene illumination
@@ -68,7 +68,7 @@ Color Scene::tracePixel(const int x, const int y, const int aan) const
     return Color(0.0f, 0.0f, 0.0f);
 
   const int maxReflections = 7;
-  Color aaPixelColor = { 0.0f, 0.0f, 0.0f };
+  Color aaPixelColor = Color(0.0f, 0.0f, 0.0f);
 
   const float flx = float(x) - screenWidth / 2.0f;
   const float fly = float(y) - screenHeight / 2.0f;
@@ -77,9 +77,9 @@ Color Scene::tracePixel(const int x, const int y, const int aan) const
   for (int aax = 0; aax < aan; aax++)
   for (int aay = 0; aay < aan; aay++)
   {
-    Color colorMul = { 1.0f, 1.0f, 1.0f };
+    Color colorMul = Color(1.0f, 1.0f, 1.0f);
     Vector3 randDir = Vector3::randomInsideSphere(0.5f);
-    Color pixelColor = { 0.0f, 0.0f, 0.0f };
+    Color pixelColor = Color(0.0f, 0.0f, 0.0f);
     Vector3 origin = camera.eye;
     Vector3 ray(flx + float(aax) / aan,
                 fly + float(aay) / aan,
@@ -122,8 +122,8 @@ Color Scene::tracePixel(const int x, const int y, const int aan) const
         float rayLen = ray.length();
         float normLen = norm.length();
         float reflectLen = reflect.length();
-        Color sumLightColor = { 0.0f, 0.0f, 0.0f };
-        Color sumSpecColor = { 0.0f, 0.0f, 0.0f };
+        Color sumLightColor = Color(0.0f, 0.0f, 0.0f);
+        Color sumSpecColor = Color(0.0f, 0.0f, 0.0f);
 
 // tracing each light source visibility
         for (SCENE_LIGHTS::const_iterator lt = sceneLights.begin(); lt != sceneLights.end(); ++lt)

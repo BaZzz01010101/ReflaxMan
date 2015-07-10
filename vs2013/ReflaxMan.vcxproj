@@ -35,7 +35,7 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v120</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -111,11 +111,15 @@
       <WarningLevel>Level4</WarningLevel>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <FloatingPointModel>Fast</FloatingPointModel>
+      <BrowseInformation>true</BrowseInformation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <Bscmake>
+      <PreserveSbr>true</PreserveSbr>
+    </Bscmake>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -164,6 +168,7 @@
     <ClInclude Include="..\Airly\airly.h" />
     <ClInclude Include="..\airly\Color.h" />
     <ClInclude Include="..\airly\image_file_headers.h" />
+    <ClInclude Include="..\airly\Matrix44.h" />
     <ClInclude Include="..\airly\OmniLight.h" />
     <ClInclude Include="..\airly\Material.h" />
     <ClInclude Include="..\airly\SceneObject.h" />
@@ -184,6 +189,7 @@
   <ItemGroup>
     <ClCompile Include="..\Airly\airly.cpp" />
     <ClCompile Include="..\airly\Color.cpp" />
+    <ClCompile Include="..\airly\Matrix44.cpp" />
     <ClCompile Include="..\airly\OmniLight.cpp" />
     <ClCompile Include="..\airly\Material.cpp" />
     <ClCompile Include="..\airly\SceneObject.cpp" />

@@ -19,7 +19,7 @@ public:
 
   Matrix44();
   Matrix44(const Matrix44 & v);
-  Matrix44::Matrix44(float f11, float f12, float f13, float f14,
+  Matrix44(float f11, float f12, float f13, float f14,
                      float f21, float f22, float f23, float f24,
                      float f31, float f32, float f33, float f34,
                      float f41, float f42, float f43, float f44);
@@ -27,7 +27,7 @@ public:
 
   void transpose();
   Matrix44 transposed() const;
-  float det() const ;
+  float det33() const ;
   Vector3 getCol(const int i) const;
   void setCol(const int i, const Vector3 & v);
 

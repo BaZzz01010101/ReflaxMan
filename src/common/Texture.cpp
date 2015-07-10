@@ -30,7 +30,7 @@ Texture::Texture(const int width, const int height)
   resize(width, height);
 }
 
-Texture::Texture(const wchar_t* filename)
+Texture::Texture(const char* filename)
 {
   width = 0;
   height = 0;
@@ -42,12 +42,12 @@ Texture::~Texture()
 {
 }
 
-bool Texture::loadFromTGAFile(const wchar_t * fileName)
+bool Texture::loadFromTGAFile(const char * fileName)
 {
   bool retVal = false;
   FILE * fh;
 
-  if (!_wfopen_s(&fh, fileName, L"rb"))
+  if (!fopen_s(&fh, fileName, "rb"))
   {
     TGAFileHeader header;
 
@@ -94,12 +94,12 @@ bool Texture::loadFromTGAFile(const wchar_t * fileName)
   return retVal;
 }
 
-bool Texture::saveToTGAFile(const wchar_t * fileName)
+bool Texture::saveToTGAFile(const char * fileName)
 {
   bool retVal = false;
   FILE * fh;
 
-  if (!_wfopen_s(&fh, fileName, L"wb"))
+  if (!fopen_s(&fh, fileName, "wb"))
   {
     TGAFileHeader header;
     header.idlen = 0;
@@ -123,12 +123,12 @@ bool Texture::saveToTGAFile(const wchar_t * fileName)
   return retVal;
 }
 
-bool Texture::saveToBMPFile(const wchar_t * fileName)
+bool Texture::saveToBMPFile(const char * fileName)
 {
   bool retVal = false;
   FILE * fh;
 
-  if (!_wfopen_s(&fh, fileName, L"wb"))
+  if (!fopen_s(&fh, fileName, "wb"))
   {
     BMPFileHeader fileHeader;
     fileHeader.bfType = 'MB';
@@ -159,35 +159,35 @@ bool Texture::saveToBMPFile(const wchar_t * fileName)
   return retVal;
 }
 
-bool Texture::loadFromFile(const wchar_t * fileName)
+bool Texture::loadFromFile(const char * fileName)
 {
-  std::wstring fileNameString = fileName;
+  std::string fileNameString = fileName;
   unsigned int dotIndex = fileNameString.find_last_of('.');
 
-  if (dotIndex != std::wstring::npos)
+  if (dotIndex != std::string::npos)
   {
     int extLen = fileNameString.length() - dotIndex;
-    std::wstring fileExt = fileNameString.substr(dotIndex, extLen);
+    std::string fileExt = fileNameString.substr(dotIndex, extLen);
 
-    if (fileExt == L".tga")
+    if (fileExt == ".tga")
       return loadFromTGAFile(fileName);
   }
   return false;
 }
 
-bool Texture::saveToFile(const wchar_t * fileName)
+bool Texture::saveToFile(const char * fileName)
 {
-  std::wstring fileNameString = fileName;
+  std::string fileNameString = fileName;
   unsigned int dotIndex = fileNameString.find_last_of('.');
 
-  if (dotIndex != std::wstring::npos)
+  if (dotIndex != std::string::npos)
   {
     int extLen = fileNameString.length() - dotIndex;
-    std::wstring fileExt = fileNameString.substr(dotIndex, extLen);
+    std::string fileExt = fileNameString.substr(dotIndex, extLen);
 
-    if (fileExt == L".tga")
+    if (fileExt == ".tga")
       return saveToTGAFile(fileName);
-    if (fileExt == L".bmp")
+    if (fileExt == ".bmp")
       return saveToBMPFile(fileName);
   }
   return false;

@@ -13,17 +13,17 @@ public:
   Texture();
   Texture(const Texture & texture);
   Texture(const int width, const int height);
-  Texture(const wchar_t* filename);
+  Texture(const char* filename);
   ~Texture();
 
   Texture & operator = (const Texture & texture);
 
-  bool loadFromFile(const wchar_t* fileName);
-  bool saveToFile(const wchar_t* fileName);
+  bool loadFromFile(const char* fileName);
+  bool saveToFile(const char* fileName);
 
-  bool loadFromTGAFile(const wchar_t* fileName);
-  bool saveToTGAFile(const wchar_t* fileName);
-  bool saveToBMPFile(const wchar_t* fileName);
+  bool loadFromTGAFile(const char* fileName);
+  bool saveToTGAFile(const char* fileName);
+  bool saveToBMPFile(const char* fileName);
 
   ARGB * getColorBuffer() const;
   Color getTexelColor(const int x, const int y) const;

@@ -33,8 +33,10 @@ Matrix44 Matrix44::transposed() const
 
 float Matrix44::det33() const
 {
-  return _11 * _22 * _33 + _22 + _33 + _12 + _23 + _31 + _13 + _21 + _32 - 
-    _
+  return
+    _11 * (_22 * _33 - _32 * _23) +
+    _21 * (_32 * _13 - _12 * _33) +
+    _31 * (_12 * _23 - _13 * _22);
 }
 
 Vector3 Matrix44::getCol(const int i) const

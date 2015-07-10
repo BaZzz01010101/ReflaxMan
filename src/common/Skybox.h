@@ -12,10 +12,10 @@ private:
 
 public:
   Skybox();
-  Skybox(const wchar_t * textureFileName);
+  Skybox(const char * textureFileName);
   ~Skybox();
 
-  bool loadTexture(const wchar_t* fileName);
+  bool loadTexture(const char* fileName);
   Color getTexelColor(const Vector3 & ray) const;
 };
 
