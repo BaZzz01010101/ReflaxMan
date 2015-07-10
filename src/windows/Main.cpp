@@ -20,8 +20,6 @@ void print(HDC dc, int x, int y, const char* format, ...)
   va_list args;
   va_start(args, format);
   vsprintf(buffer, format, args);
-  //vsprintf_s(buffer, buf_len, format, args);
-  //perror(buffer);
   va_end(args);
 
   SetBkMode(dc, TRANSPARENT);
@@ -301,7 +299,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
           const int bufSize = 256;
           char name[bufSize];
           GetSystemTimeAsFileTime(&ft);
-          sprintf_s(name, bufSize, "scrnshoot_%08X%08X.bmp", ft.dwHighDateTime, ft.dwLowDateTime);
+          sprintf(name, "scrnshoot_%08X%08X.bmp", ft.dwHighDateTime, ft.dwLowDateTime);
           std::string str = std::string(exeFullPath) + name;
           shot.saveToFile(str.c_str());
 

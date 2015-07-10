@@ -1,7 +1,10 @@
 #pragma once
+#pragma warning(disable: 4996)
+
 #include <assert.h>
 #include <memory.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <float.h>
 #define _USE_MATH_DEFINES
 #include <cmath>

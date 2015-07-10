@@ -45,9 +45,8 @@ Texture::~Texture()
 bool Texture::loadFromTGAFile(const char * fileName)
 {
   bool retVal = false;
-  FILE * fh;
-
-  if (!fopen_s(&fh, fileName, "rb"))
+  FILE * fh = fopen(fileName, "rb");
+  if (fh)
   {
     TGAFileHeader header;
 
@@ -97,9 +96,9 @@ bool Texture::loadFromTGAFile(const char * fileName)
 bool Texture::saveToTGAFile(const char * fileName)
 {
   bool retVal = false;
-  FILE * fh;
+  FILE * fh = fopen(fileName, "wb");
 
-  if (!fopen_s(&fh, fileName, "wb"))
+  if (fh)
   {
     TGAFileHeader header;
     header.idlen = 0;
@@ -126,9 +125,9 @@ bool Texture::saveToTGAFile(const char * fileName)
 bool Texture::saveToBMPFile(const char * fileName)
 {
   bool retVal = false;
-  FILE * fh;
+  FILE * fh = fopen(fileName, "wb");
 
-  if (!fopen_s(&fh, fileName, "wb"))
+  if (fh)
   {
     BMPFileHeader fileHeader;
     fileHeader.bfType = 'MB';
