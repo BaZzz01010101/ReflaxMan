@@ -7,8 +7,8 @@
 
 Scene::Scene(const char * exePath) 
 {
-  std::string skyboxTextureFileName = std::string(exePath) + ".\\textures\\skybox.tga";
-  std::string planeTextureFileName = std::string(exePath) + ".\\textures\\himiya.tga";
+  std::string skyboxTextureFileName = std::string(exePath) + "./textures/skybox.tga";
+  std::string planeTextureFileName = std::string(exePath) + "./textures/himiya.tga";
   bool retVal = skybox.loadTexture(skyboxTextureFileName.c_str());
   assert(retVal);
   retVal = planeTexture.loadFromFile(planeTextureFileName.c_str());
