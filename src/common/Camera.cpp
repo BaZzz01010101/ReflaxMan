@@ -57,7 +57,7 @@ Camera::~Camera()
 
 void Camera::initRotationQuants()
 {
-  const float Q = float(M_PI) / 90.0f;
+  const float Q = float(M_PI) / 1000.0f;
   const float cosQ = cos(Q);
   const float sinQ = sin(Q);
   const float mcosQ = cos(-Q);
@@ -115,7 +115,7 @@ void Camera::rotate(Rotation rot)
 
 void Camera::move(Movement mov)
 {
-  const float moveStep = 0.1f;
+  const float moveStep = 0.01f;
 
   switch (mov)
   {

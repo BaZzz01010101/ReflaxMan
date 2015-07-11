@@ -26,6 +26,11 @@ namespace Airly
   inline float clamp(float val, float min, float max) { return val < min ? min : val > max ? max : val; }
   inline int clamp(int val, int min, int max) { return val < min ? min : val > max ? max : val; }
 
+  inline int min(int a, int b) { return a < b ? a : b; };
+  inline int max(int a, int b) { return a > b ? a : b; };
+  inline float min(float a, float b) { return a < b ? a : b; };
+  inline float max(float a, float b) { return a > b ? a : b; };
+
   static int g_seed = rand();
   static const int FAST_RAND_MAX = 0x7FFF;
   inline int fastrand() {

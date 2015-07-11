@@ -84,6 +84,9 @@
     <ClInclude Include="..\airly\Matrix44.h">
       <Filter>Header Files\Airly</Filter>
     </ClInclude>
+    <ClInclude Include="..\airly\Render.h">
+      <Filter>Header Files\Airly</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -141,6 +144,9 @@
       <Filter>Source Files\Airly</Filter>
     </ClCompile>
     <ClCompile Include="..\airly\Matrix44.cpp">
+      <Filter>Source Files\Airly</Filter>
+    </ClCompile>
+    <ClCompile Include="..\airly\Render.cpp">
       <Filter>Source Files\Airly</Filter>
     </ClCompile>
   </ItemGroup>

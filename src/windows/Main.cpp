@@ -1,16 +1,26 @@
+#define NOMINMAX
 #include <windows.h>
 #include "stdafx.h"
 #include "..\airly\airly.h"
-#include "..\airly\Scene.h"
+#include "..\airly\Render.h"
 
-Scene * scene = NULL;
+Render * render = NULL;
 HFONT font = NULL;
 HDC memDC = NULL;
 HBITMAP bitmap = NULL;
 DWORD * pixels = NULL;
+int bmWidth = 0;
+int bmHeight = 0;
+bool imageReady = false;
+float frameChunkTime = 0.0f;
+float frameTime = 0.0f;
 char exeFullPath[MAX_PATH];
 float scrnshotProgress = -1;
 DWORD scrnshotStartTicks = 0;
+LARGE_INTEGER perfFreq = { 0, 0 };
+bool initPerfSuccess = (QueryPerformanceFrequency(&perfFreq) && perfFreq.QuadPart > 0);
+bool quitMessage = false;
+
 
 void print(HDC dc, int x, int y, const char* format, ...)
 {
@@ -28,68 +38,109 @@ void print(HDC dc, int x, int y, const char* format, ...)
   //TextOutA(dc, x, y, format, strlen(format));
 }
 
-bool DrawScene(HWND hWnd, HDC hdc)
+void ProceedControl()
 {
-  for (int y = 0; y < scene->screenHeight; ++y)
-  for (int x = 0; x < scene->screenWidth; ++x)
-    pixels[x + y * scene->screenWidth] =
-    //pixels[x + y * scene->screenWidth] ?
-    //((Color(pixels[x + y * scene->screenWidth]) * 10 + scene->tracePixel(x, y, 1)) / 11).argb() :
-    scene->tracePixel(x, y, 1).argb();
+  if (GetKeyState('A') & 0x8000)
+    render->camera.move(Camera::Movement::cmForward);
+  if (GetKeyState('Z') & 0x8000)
+    render->camera.move(Camera::Movement::cmBack);
+  if (GetKeyState(VK_LEFT) & 0x8000)
+    render->camera.rotate(Camera::Rotation::crLeft);
+  if (GetKeyState(VK_RIGHT) & 0x8000)
+    render->camera.rotate(Camera::Rotation::crRight);
+  if (GetKeyState(VK_UP) & 0x8000)
+    render->camera.rotate(Camera::Rotation::crUp);
+  if (GetKeyState(VK_DOWN) & 0x8000)
+    render->camera.rotate(Camera::Rotation::crDown);
+  if (GetKeyState(VK_INSERT) & 0x8000)
+    render->camera.rotate(Camera::Rotation::crCcwise);
+  if (GetKeyState(VK_PRIOR) & 0x8000)
+    render->camera.rotate(Camera::Rotation::crCwise);
+  if (GetKeyState(VK_DELETE) & 0x8000)
+    render->camera.move(Camera::Movement::cmLeft);
+  if (GetKeyState(VK_NEXT) & 0x8000)
+    render->camera.move(Camera::Movement::cmRight);
+  if (GetKeyState(VK_HOME) & 0x8000)
+    render->camera.move(Camera::Movement::cmUp);
+  if (GetKeyState(VK_END) & 0x8000)
+    render->camera.move(Camera::Movement::cmDown);
+}
 
+void DrawImage(HWND hWnd, HDC hdc)
+{
   RECT clientRect;
-
-  if (memDC &&
-      GetClientRect(hWnd, &clientRect) &&
-      BitBlt(hdc, 0, 0, clientRect.right, clientRect.bottom, memDC, 0, 0, SRCCOPY))
-    return true;
-  else
-    return false;
-}
-
-void OnResize(int width, int height)
-{
-  if (memDC)
-  {
-    DeleteDC(memDC);
-    memDC = NULL;
-  }
-
-  if (bitmap)
-  {
-    DeleteObject(bitmap);
-    bitmap = NULL;
-    pixels = NULL;
-  }
-
-  scene->screenWidth = width;
-  scene->screenHeight = height;
-
   BITMAPINFO bmi;
-  bmi.bmiHeader.biSize = sizeof(bmi.bmiHeader);
-  bmi.bmiHeader.biWidth = (width >= 1 ? width : 1);
-  bmi.bmiHeader.biHeight = (height >= 1 ? height : 1);
-  bmi.bmiHeader.biPlanes = 1;
-  bmi.bmiHeader.biBitCount = 32;
-  bmi.bmiHeader.biCompression = BI_RGB;
-  bmi.bmiHeader.biSizeImage = 0;
-  bmi.bmiHeader.biXPelsPerMeter = 0;
-  bmi.bmiHeader.biYPelsPerMeter = 0;
-  bmi.bmiHeader.biClrUsed = 0;
-  bmi.bmiHeader.biClrImportant = 0;
+  if (!GetClientRect(hWnd, &clientRect))
+    clientRect.left = clientRect.right = clientRect.top = clientRect.bottom = 0;
 
-  memDC = CreateCompatibleDC(NULL);
-  bitmap = CreateDIBSection(NULL, &bmi, DIB_RGB_COLORS, (void**)&pixels, NULL, 0);
+  if (imageReady)
+  {
+    if (clientRect.right != bmWidth || clientRect.bottom != bmHeight)
+    {
+      if (memDC)
+      {
+        DeleteDC(memDC);
+        memDC = NULL;
+      }
 
-  if (memDC && bitmap)
-      SelectObject(memDC, bitmap);
+      if (bitmap)
+      {
+        DeleteObject(bitmap);
+        bitmap = NULL;
+        pixels = NULL;
+      }
+
+      bmi.bmiHeader.biSize = sizeof(bmi.bmiHeader);
+      bmi.bmiHeader.biWidth = max(clientRect.right, 1);
+      bmi.bmiHeader.biHeight = max(clientRect.bottom, 1);
+      bmi.bmiHeader.biPlanes = 1;
+      bmi.bmiHeader.biBitCount = 32;
+      bmi.bmiHeader.biCompression = BI_RGB;
+      bmi.bmiHeader.biSizeImage = 0;
+      bmi.bmiHeader.biXPelsPerMeter = 0;
+      bmi.bmiHeader.biYPelsPerMeter = 0;
+      bmi.bmiHeader.biClrUsed = 0;
+      bmi.bmiHeader.biClrImportant = 0;
+
+      memDC = CreateCompatibleDC(NULL);
+      bitmap = CreateDIBSection(NULL, &bmi, DIB_RGB_COLORS, (void**)&pixels, NULL, 0);
+
+      if (memDC && bitmap)
+      {
+        SelectObject(memDC, bitmap);
+        bmWidth = clientRect.right;
+        bmHeight = clientRect.bottom;
+      }
+      else
+      {
+        bmWidth = 0;
+        bmHeight = 0;
+      }
+    }
+
+    for (int y = 0; y < bmHeight; ++y)
+    for (int x = 0; x < bmWidth; ++x)
+      pixels[x + y * bmWidth] =
+      //pixels[x + y * render->screenWidth] ?
+      //((Color(pixels[x + y * render->screenWidth]) * 10 + render->tracePixel(x, y, 1)) / 11).argb() :
+      render->getImagePixel(x, y).argb();
+
+    imageReady = false;
+  }
+
+  if (memDC && pixels)
+  {
+    SetStretchBltMode(hdc, HALFTONE);
+    StretchBlt(hdc, 0, 0, clientRect.right, clientRect.bottom, memDC, 0, 0, bmWidth, bmHeight, SRCCOPY);
+  }
 }
 
-void OnPaint(HWND hWnd, HDC hdc)
+void DrawStats(HWND hWnd, HDC hdc)
 {
   TEXTMETRICA tm;
   SelectObject(hdc, font);
   GetTextMetricsA(hdc, &tm);
+  int y = 0;
 
   if (scrnshotProgress >= 0)
   {
@@ -97,7 +148,6 @@ void OnPaint(HWND hWnd, HDC hdc)
     GetClientRect(hWnd, &r);
     FillRect(hdc, &r, (HBRUSH)GetStockObject(DKGRAY_BRUSH));
 
-    int y = 0;
     print(hdc, 0, y, "Saving screenshot");
     y += tm.tmHeight;
 
@@ -116,40 +166,33 @@ void OnPaint(HWND hWnd, HDC hdc)
   }
   else
   {
-    static LARGE_INTEGER freq = { 0, 0 };
-    static bool initSuccess = (QueryPerformanceFrequency(&freq) && 
-                               freq.QuadPart > 0);
+    if (frameTime < 10)
+      print(hdc, 0, y, "frame time: %.0f ms", frameTime * 1000);
+    else
+      print(hdc, 0, y, "frame time: %.03f s", frameTime);
 
-    LARGE_INTEGER cnt0, cnt1;
-    bool cnt0Success = QueryPerformanceCounter(&cnt0) != 0;
+    y += tm.tmHeight;
+    print(hdc, 0, y, "camera eye: [%.03f, %.03f, %.03f]", render->camera.eye.x, render->camera.eye.y, render->camera.eye.z);
 
-    DrawScene(hWnd, hdc);
+    y += tm.tmHeight;
+    Vector3 at = render->camera.eye + render->camera.view.getCol(2);
+    print(hdc, 0, y, "camera at: [%.03f, %.03f, %.03f]", at.x, at.y, at.z);
 
-    if (initSuccess && 
-      cnt0Success && 
-      QueryPerformanceCounter(&cnt1) && 
-      cnt1.QuadPart != cnt0.QuadPart)
-    {
-      float frameTime = float(cnt1.QuadPart - cnt0.QuadPart) / freq.QuadPart;
-      int y = 0;
-
-      if (frameTime < 10)
-        print(hdc, 0, y, "frame time: %.0f ms", frameTime * 1000);
-      else
-        print(hdc, 0, y, "frame time: %.03f s", frameTime);
-
-      y += tm.tmHeight;
-      print(hdc, 0, y, "camera eye: [%.03f, %.03f, %.03f]", scene->camera.eye.x, scene->camera.eye.y, scene->camera.eye.z);
-
-      y += tm.tmHeight;
-      Vector3 at = scene->camera.eye + scene->camera.view.getCol(2);
-      print(hdc, 0, y, "camera at: [%.03f, %.03f, %.03f]", at.x, at.y, at.z);
-
-      y += tm.tmHeight;
-      Vector3 up = scene->camera.view.getCol(1);
-      print(hdc, 0, y, "camera up: [%.03f, %.03f, %.03f]", up.x, up.y, up.z);
-    }
+    y += tm.tmHeight;
+    Vector3 up = render->camera.view.getCol(1);
+    print(hdc, 0, y, "camera up: [%.03f, %.03f, %.03f]", up.x, up.y, up.z);
   }
+}
+
+void OnResize(int width, int height)
+{
+  render->setImageSize(width, height);
+}
+
+void OnPaint(HWND hWnd, HDC hdc)
+{
+  DrawImage(hWnd, hdc);
+  DrawStats(hWnd, hdc);
 }
 
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -170,6 +213,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
   case WM_ERASEBKGND:
     return 1;
   case WM_DESTROY:
+    quitMessage = true;
     PostQuitMessage(0);
     break;
   case WM_SIZE:
@@ -195,7 +239,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
   GetFullPathNameA(exeFullName, MAX_PATH, exeFullPath, &lpExeName);
   *lpExeName = '\0';
 
-  scene = new Scene(exeFullPath);
+  render = new Render(exeFullPath);
 
   WNDCLASSEXA wcex;
   wcex.cbSize = sizeof(wcex);
@@ -222,77 +266,79 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
     MSG msg;
 
-    while (GetMessage(&msg, NULL, 0, 0))
+//    while (GetMessage(&msg, NULL, 0, 0))
+    while (!quitMessage)
     {
-      TranslateMessage(&msg);
-      DispatchMessage(&msg);
+      if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+      {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+      }
 
       if (GetForegroundWindow() == hWnd)
       {
-        if (GetKeyState('A') & 0x8000)
-          scene->camera.move(Camera::Movement::cmForward);
-        if (GetKeyState('Z') & 0x8000)
-          scene->camera.move(Camera::Movement::cmBack);
-        if (GetKeyState(VK_LEFT) & 0x8000)
-          scene->camera.rotate(Camera::Rotation::crLeft);
-        if (GetKeyState(VK_RIGHT) & 0x8000)
-          scene->camera.rotate(Camera::Rotation::crRight);
-        if (GetKeyState(VK_UP) & 0x8000)
-          scene->camera.rotate(Camera::Rotation::crUp);
-        if (GetKeyState(VK_DOWN) & 0x8000)
-          scene->camera.rotate(Camera::Rotation::crDown);
-        if (GetKeyState(VK_INSERT) & 0x8000)
-          scene->camera.rotate(Camera::Rotation::crCcwise);
-        if (GetKeyState(VK_PRIOR) & 0x8000)
-          scene->camera.rotate(Camera::Rotation::crCwise);
-        if (GetKeyState(VK_DELETE) & 0x8000)
-          scene->camera.move(Camera::Movement::cmLeft);
-        if (GetKeyState(VK_NEXT) & 0x8000)
-          scene->camera.move(Camera::Movement::cmRight);
-        if (GetKeyState(VK_HOME) & 0x8000)
-          scene->camera.move(Camera::Movement::cmUp);
-        if (GetKeyState(VK_END) & 0x8000)
-          scene->camera.move(Camera::Movement::cmDown);
+
+        ProceedControl();
+
+        if (!render->inProgress())
+          render->renderBegin(7, 1);
+
+        if (!imageReady)
+        {
+          LARGE_INTEGER cnt0, cnt1;
+          bool cnt0Success = QueryPerformanceCounter(&cnt0) != 0;
+
+          int linesLeft = render->renderNext(10);
+
+          if (initPerfSuccess &&
+            cnt0Success &&
+            QueryPerformanceCounter(&cnt1) &&
+            cnt1.QuadPart != cnt0.QuadPart)
+          {
+            frameChunkTime += float(cnt1.QuadPart - cnt0.QuadPart) / perfFreq.QuadPart;
+          }
+
+          if (!linesLeft)
+          {
+            frameTime = frameChunkTime;
+            frameChunkTime = 0;
+            imageReady = true;
+            InvalidateRect(hWnd, NULL, false);
+          }
+
+        }
 
         if (GetKeyState(VK_F2) & 0x8000)
         {
-          Scene shotScene(exeFullPath);
-          shotScene.camera = scene->camera;
+          Render shotRender(exeFullPath);
+          shotRender.camera = render->camera;
           const int w = 1680;
           const int h = 1050;
-          Texture shot(w, h);
-          const int aan = 64;
+          const int refls = 7;
+          const int aan = 4;
 
-          shotScene.screenWidth = w;
-          shotScene.screenHeight = h;
-          ARGB * pixels = shot.getColorBuffer();
+          shotRender.setImageSize(w, h);
 
           scrnshotStartTicks = GetTickCount();
           DWORD lastTicks = scrnshotStartTicks;
-
-          for (int y = 0; y < h; ++y)
+          shotRender.renderBegin(refls, aan);
+          while (!shotRender.renderNext(10))
           {
-            for (int x = 0; x < w; ++x)
+            if (int(GetTickCount() - lastTicks) > 100)
             {
-              pixels[x + y * w] = shotScene.tracePixel(x, y, aan).argb();
-
-              if (int(GetTickCount() - lastTicks) > 100)
-              {
-                lastTicks = GetTickCount();
-                scrnshotProgress = (x + y * w) * 100.0f / w / h;
-                InvalidateRect(hWnd, NULL, false);
-              }
-
-              while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-              {
-                if (msg.message == WM_QUIT)
-                  goto EXIT;
-
-                TranslateMessage(&msg);
-                DispatchMessage(&msg);
-              }
+              lastTicks = GetTickCount();
+              scrnshotProgress = shotRender.getRenderProgress();
+              InvalidateRect(hWnd, NULL, false);
             }
 
+            while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+            {
+              if (msg.message == WM_QUIT)
+                goto EXIT;
+
+              TranslateMessage(&msg);
+              DispatchMessage(&msg);
+            }
           }
 
           FILETIME ft;
@@ -301,11 +347,10 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
           GetSystemTimeAsFileTime(&ft);
           sprintf(name, "scrnshoot_%08X%08X.bmp", ft.dwHighDateTime, ft.dwLowDateTime);
           std::string str = std::string(exeFullPath) + name;
-          shot.saveToFile(str.c_str());
+          shotRender.image.saveToFile(str.c_str());
 
           scrnshotProgress = -1;
         }
-        InvalidateRect(hWnd, NULL, false);
       }
     }
 
@@ -319,8 +364,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     if (font)
       DeleteObject(font);
 
-    if (scene)
-      delete scene;
+    if (render)
+      delete render;
 
     return (int)msg.wParam;
   }

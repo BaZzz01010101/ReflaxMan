@@ -49,7 +49,7 @@
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v120</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -171,6 +171,7 @@
     <ClInclude Include="..\airly\Matrix44.h" />
     <ClInclude Include="..\airly\OmniLight.h" />
     <ClInclude Include="..\airly\Material.h" />
+    <ClInclude Include="..\airly\Render.h" />
     <ClInclude Include="..\airly\SceneObject.h" />
     <ClInclude Include="..\airly\Skybox.h" />
     <ClInclude Include="..\airly\Sphere.h" />
@@ -192,6 +193,7 @@
     <ClCompile Include="..\airly\Matrix44.cpp" />
     <ClCompile Include="..\airly\OmniLight.cpp" />
     <ClCompile Include="..\airly\Material.cpp" />
+    <ClCompile Include="..\airly\Render.cpp" />
     <ClCompile Include="..\airly\SceneObject.cpp" />
     <ClCompile Include="..\airly\Skybox.cpp" />
     <ClCompile Include="..\airly\Sphere.cpp" />
