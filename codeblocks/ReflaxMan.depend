@@ -2462,7 +2462,7 @@
 	<X11/Xlib.h>
 	<unistd.h>
 
-1436574317 source:/home/andy/Projects/ReflaxMan/unix/main.cpp
+1436624806 source:/home/andy/Projects/ReflaxMan/unix/main.cpp
 	<X11/Xlib.h>
 	<X11/Xutil.h>
 	<X11/keysym.h>
@@ -2472,8 +2472,13 @@
 	<stdio.h>
 	<string.h>
 	<malloc.h>
+	<time.h>
+	<cstdarg>
 	"../airly/airly.h"
 	"../airly/Scene.h"
+	<fcntl.h>
+	<sys/ioctl.h>
+	<linux/kd.h>
 
 1436474007 source:/home/andy/Projects/ReflaxMan/airly/airly.cpp
 	"airly.h"
