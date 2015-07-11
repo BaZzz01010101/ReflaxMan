@@ -23,7 +23,7 @@ void Render::loadScene(const char * exePath)
   scene = Scene(Color(0.95f, 0.95f, 1.0f), 0.15f);
   scene.setSkyboxTexture(skyboxTextureFileName.c_str());
 
-  scene.addLight(Vector3(11.8e9f, 4.26e9f, 3.08e9f), 6.96e8f, Color(1.0f, 1.0f, 0.95f), 1.0f);
+  scene.addLight(Vector3(11.8e9f, 4.26e9f, 3.08e9f), 3.48e8f, Color(1.0f, 1.0f, 0.95f), 0.85f);
   //scene.addLight(Vector3(-1.26e9f, 11.8e9f, 1.08e9f), 6.96e8f, Color(1.0f, 0.5f, 0.5f), 0.2f);
   //scene.addLight(Vector3(11.8e9f, 4.26e9f, 3.08e9f), 6.96e9f, Color(1.0f, 1.0f, 0.95f), 0.85f);
 

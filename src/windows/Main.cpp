@@ -372,8 +372,10 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     UpdateWindow(hWnd);
 
     MSG msg;
+    int movingSampleNum = -4;
+    int normalSampleNum = 1;
+    int sampleNum = normalSampleNum;
 
-//    while (GetMessage(&msg, NULL, 0, 0))
     while (!quitMessage)
     {
       if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
@@ -387,10 +389,10 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
         ProceedControl();
 
-        if (!render->inProgress())
+        if (!render->inProgress() || (controlFlags && sampleNum != movingSampleNum))
         {
-          int ssn = controlFlags ? -4 : 1;
-          render->renderBegin(7, ssn);
+          sampleNum = controlFlags ? movingSampleNum : normalSampleNum;
+          render->renderBegin(7, sampleNum);
         }
 
         if (!imageReady)
