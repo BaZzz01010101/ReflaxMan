@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="ReflaxMan" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="Build/ReflaxMan" prefix_auto="1" extension_auto="1" />
+				<Option object_output="Build/obj/Debug" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+				<Linker>
+					<Add option="-lX11" />
+				</Linker>
+			</Target>
+			<Target title="Release">
+				<Option output="Build/ReflaxMan" prefix_auto="1" extension_auto="1" />
+				<Option object_output="Build/obj/Release/" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add option="-lX11" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+		</Compiler>
+		<Unit filename="airly/Camera.cpp" />
+		<Unit filename="airly/Camera.h" />
+		<Unit filename="airly/Color.cpp" />
+		<Unit filename="airly/Color.h" />
+		<Unit filename="airly/Material.cpp" />
+		<Unit filename="airly/Material.h" />
+		<Unit filename="airly/Matrix33.cpp" />
+		<Unit filename="airly/Matrix33.h" />
+		<Unit filename="airly/OmniLight.cpp" />
+		<Unit filename="airly/OmniLight.h" />
+		<Unit filename="airly/Plane.cpp" />
+		<Unit filename="airly/Plane.h" />
+		<Unit filename="airly/Quaternion.cpp" />
+		<Unit filename="airly/Quaternion.h" />
+		<Unit filename="airly/Scene.cpp" />
+		<Unit filename="airly/Scene.h" />
+		<Unit filename="airly/SceneObject.cpp" />
+		<Unit filename="airly/SceneObject.h" />
+		<Unit filename="airly/Skybox.cpp" />
+		<Unit filename="airly/Skybox.h" />
+		<Unit filename="airly/Sphere.cpp" />
+		<Unit filename="airly/Sphere.h" />
+		<Unit filename="airly/Texture.cpp" />
+		<Unit filename="airly/Texture.h" />
+		<Unit filename="airly/Triangle.cpp" />
+		<Unit filename="airly/Triangle.h" />
+		<Unit filename="airly/Vector3.cpp" />
+		<Unit filename="airly/Vector3.h" />
+		<Unit filename="airly/airly.cpp" />
+		<Unit filename="airly/airly.h" />
+		<Unit filename="airly/image_file_headers.h" />
+		<Unit filename="unix/main.cpp" />
+		<Extensions>
+			<code_completion />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
