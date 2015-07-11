@@ -20,7 +20,19 @@ DWORD scrnshotStartTicks = 0;
 LARGE_INTEGER perfFreq = { 0, 0 };
 bool initPerfSuccess = (QueryPerformanceFrequency(&perfFreq) && perfFreq.QuadPart > 0);
 bool quitMessage = false;
-
+int controlFlags = 0;
+const int turnLeftMask = 1 << 0;
+const int turnRightMask = 1 << 1;
+const int turnUpMask = 1 << 2;
+const int turnDownMask = 1 << 3;
+const int turnCwizeMask = 1 << 4;
+const int turnCcwizeMask = 1 << 5;
+const int shiftLeftMask = 1 << 6;
+const int shiftRightMask = 1 << 7;
+const int shiftUpMask = 1 << 8;
+const int shiftDownMask = 1 << 9;
+const int shiftForwardMask = 1 << 10;
+const int shiftBackMask = 1 << 11;
 
 void print(HDC dc, int x, int y, const char* format, ...)
 {
@@ -35,35 +47,34 @@ void print(HDC dc, int x, int y, const char* format, ...)
   SetBkMode(dc, TRANSPARENT);
   SetTextColor(dc, 0xFFFFFF);
   TextOutA(dc, x, y, buffer, strlen(buffer));
-  //TextOutA(dc, x, y, format, strlen(format));
 }
 
 void ProceedControl()
 {
-  if (GetKeyState('A') & 0x8000)
-    render->camera.move(Camera::Movement::cmForward);
-  if (GetKeyState('Z') & 0x8000)
-    render->camera.move(Camera::Movement::cmBack);
-  if (GetKeyState(VK_LEFT) & 0x8000)
+  if (controlFlags & turnLeftMask)
     render->camera.rotate(Camera::Rotation::crLeft);
-  if (GetKeyState(VK_RIGHT) & 0x8000)
+  if (controlFlags & turnRightMask)
     render->camera.rotate(Camera::Rotation::crRight);
-  if (GetKeyState(VK_UP) & 0x8000)
+  if (controlFlags & turnUpMask)
     render->camera.rotate(Camera::Rotation::crUp);
-  if (GetKeyState(VK_DOWN) & 0x8000)
+  if (controlFlags & turnDownMask)
     render->camera.rotate(Camera::Rotation::crDown);
-  if (GetKeyState(VK_INSERT) & 0x8000)
-    render->camera.rotate(Camera::Rotation::crCcwise);
-  if (GetKeyState(VK_PRIOR) & 0x8000)
+  if (controlFlags & turnCwizeMask)
     render->camera.rotate(Camera::Rotation::crCwise);
-  if (GetKeyState(VK_DELETE) & 0x8000)
+  if (controlFlags & turnCcwizeMask)
+    render->camera.rotate(Camera::Rotation::crCcwise);
+  if (controlFlags & shiftLeftMask)
     render->camera.move(Camera::Movement::cmLeft);
-  if (GetKeyState(VK_NEXT) & 0x8000)
+  if (controlFlags & shiftRightMask)
     render->camera.move(Camera::Movement::cmRight);
-  if (GetKeyState(VK_HOME) & 0x8000)
+  if (controlFlags & shiftUpMask)
     render->camera.move(Camera::Movement::cmUp);
-  if (GetKeyState(VK_END) & 0x8000)
+  if (controlFlags & shiftDownMask)
     render->camera.move(Camera::Movement::cmDown);
+  if (controlFlags & shiftForwardMask)
+    render->camera.move(Camera::Movement::cmForward);
+  if (controlFlags & shiftBackMask)
+    render->camera.move(Camera::Movement::cmBack);
 }
 
 void DrawImage(HWND hWnd, HDC hdc)
@@ -184,6 +195,10 @@ void DrawStats(HWND hWnd, HDC hdc)
   }
 }
 
+// -----------------------------------------------------------------------------
+//                                 Events
+// -----------------------------------------------------------------------------
+
 void OnResize(int width, int height)
 {
   render->setImageSize(width, height);
@@ -193,6 +208,92 @@ void OnPaint(HWND hWnd, HDC hdc)
 {
   DrawImage(hWnd, hdc);
   DrawStats(hWnd, hdc);
+}
+
+void OnKeyDown(int Key)
+{
+  switch (Key)
+  {
+  case 'A':
+    controlFlags |= shiftForwardMask;
+    break;
+  case 'Z':
+    controlFlags |= shiftBackMask;
+    break;
+  case VK_LEFT:
+    controlFlags |= turnLeftMask;
+    break;
+  case VK_RIGHT:
+    controlFlags |= turnRightMask;
+    break;
+  case VK_UP:
+    controlFlags |= turnUpMask;
+    break;
+  case VK_DOWN:
+    controlFlags |= turnDownMask;
+    break;
+  case VK_INSERT:
+    controlFlags |= turnCcwizeMask;
+    break;
+  case VK_PRIOR:
+    controlFlags |= turnCwizeMask;
+    break;
+  case VK_DELETE:
+    controlFlags |= shiftLeftMask;
+    break;
+  case VK_NEXT:
+    controlFlags |= shiftRightMask;
+    break;
+  case VK_HOME:
+    controlFlags |= shiftUpMask;
+    break;
+  case VK_END:
+    controlFlags |= shiftDownMask;
+    break;
+  }
+}
+
+void OnKeyUp(int Key)
+{
+  switch (Key)
+  {
+  case 'A':
+    controlFlags &= ~shiftForwardMask;
+    break;
+  case 'Z':
+    controlFlags &= ~shiftBackMask;
+    break;
+  case VK_LEFT:
+    controlFlags &= ~turnLeftMask;
+    break;
+  case VK_RIGHT:
+    controlFlags &= ~turnRightMask;
+    break;
+  case VK_UP:
+    controlFlags &= ~turnUpMask;
+    break;
+  case VK_DOWN:
+    controlFlags &= ~turnDownMask;
+    break;
+  case VK_INSERT:
+    controlFlags &= ~turnCcwizeMask;
+    break;
+  case VK_PRIOR:
+    controlFlags &= ~turnCwizeMask;
+    break;
+  case VK_DELETE:
+    controlFlags &= ~shiftLeftMask;
+    break;
+  case VK_NEXT:
+    controlFlags &= ~shiftRightMask;
+    break;
+  case VK_HOME:
+    controlFlags &= ~shiftUpMask;
+    break;
+  case VK_END:
+    controlFlags &= ~shiftDownMask;
+    break;
+  }
 }
 
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -218,6 +319,12 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
     break;
   case WM_SIZE:
     OnResize(LOWORD(lParam), HIWORD(lParam));
+    break;
+  case WM_KEYDOWN:
+    OnKeyDown(wParam);
+    break;
+  case WM_KEYUP:
+    OnKeyUp(wParam);
     break;
   default:
     return DefWindowProc(hWnd, message, wParam, lParam);
@@ -281,7 +388,10 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         ProceedControl();
 
         if (!render->inProgress())
-          render->renderBegin(7, 1);
+        {
+          int ssn = controlFlags ? -4 : 1;
+          render->renderBegin(7, ssn);
+        }
 
         if (!imageReady)
         {

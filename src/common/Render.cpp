@@ -78,20 +78,19 @@ int Render::renderNext(int scanLines)
     Vector3 origin = camera.eye;
     Vector3 ray(rx, ry, rz);
 
-    //if (renderSampleNum < 0)
-    //{
-    //  if (!(x % renderSampleNum || y % renderSampleNum))
-    //  {
-    //    ray = camera.view * ray;
-    //    ARGB argb = scene.trace(origin, ray, renderReflectNum).argb();
-    //    buf[x + y * image.getWidth()] = 
-    //    buf[x + 1 + y * image.getWidth()] = 
-    //    buf[x + (y + 1) * image.getWidth()] = 
-    //    buf[x + 1 + (y + 1) * image.getWidth()] = argb;
-    //  }
-    //}
-    //else
-    //{
+    if (renderSampleNum < 0)
+    {
+      if (!(x % renderSampleNum || y % renderSampleNum))
+      {
+        ray = camera.view * ray;
+        ARGB argb = scene.trace(origin, ray, renderReflectNum).argb();
+        for (int qx = min(image.getWidth(), x + abs(renderSampleNum)) - 1; qx >= x; qx--)
+        for (int qy = min(image.getHeight(), y + abs(renderSampleNum)) - 1; qy >= y; qy--)
+          buf[qx + qy * image.getWidth()] = argb;
+      }
+    }
+    else
+    {
       for (int ssx = 0; ssx < renderSampleNum; ssx++)
       for (int ssy = 0; ssy < renderSampleNum; ssy++)
       {
@@ -103,7 +102,7 @@ int Render::renderNext(int scanLines)
         ray = camera.view * ray;
         buf[x + y * image.getWidth()] = scene.trace(origin, ray, renderReflectNum).argb();
       }
-    //}
+    }
   }
 
   scanLinesRendered += scanLines;
