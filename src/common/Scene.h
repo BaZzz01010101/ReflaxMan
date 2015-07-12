@@ -24,13 +24,8 @@ private:
   Skybox skybox;
   Color diffLightColor;
   float diffLightPower;
-//  Texture planeTexture;
 
 public:
-  //Camera camera;
-  //int screenWidth;
-  //int screenHeight;
-
   Scene();
   Scene(const Color & diffLightColor, float diffLightPower);
   ~Scene();
@@ -42,6 +37,5 @@ public:
   bool setSkyboxTexture(const char * fileName);
 
   Color trace(Vector3 origin, Vector3 ray, int reflNumber) const;
-//  Color tracePixel(const int x, const int y, const int aa) const;
 };
 

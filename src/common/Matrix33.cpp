@@ -266,3 +266,17 @@ Matrix33 Matrix33::operator - () const
                   -_21, -_22, -_23,
                   -_31, -_32, -_33);
 }
+
+Matrix33 Matrix33::makeRotation(float yaw, float pitch)
+{
+  float yawSin = sin(yaw);
+  float yawCos = cos(yaw);
+  float pitchSin = sin(pitch);
+  float pitchCos = cos(pitch);
+
+  Vector3 front(yawSin * pitchCos, pitchSin, yawCos * pitchCos);
+  Vector3 right = Vector3(0.0f, 1.0f, 0.0f) % front;
+  Vector3 up = front % right;
+
+  return Matrix33(right.normalized(), up.normalized(), front.normalized());
+}

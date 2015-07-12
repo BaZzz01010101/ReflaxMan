@@ -6,12 +6,14 @@
 class Render
 {
 private:
-  int imageWidth;
-  int imageHeight;
   int renderReflectNum; 
   int renderSampleNum;
+  bool renderAdditive;
+  int additiveCounter;
   int scanLinesRendered;
   bool renderInProgress;
+  Matrix33 renderCameraView;
+  Vector3 renderCameraEye;
 
 public:
   Texture image;
@@ -24,9 +26,10 @@ public:
   void loadScene(const char * exePath);
   void setImageSize(int width, int height);
 
-  void renderBegin(int reflectNum, int sampleNum);
+  void renderBegin(int reflectNum, int sampleNum, bool additive);
+  void renderRestart();
   int renderNext(int scanLines);
-  void renderAll(int reflectNum, int sampleNum);
+  void renderAll(int reflectNum, int sampleNum, bool additive);
   
   inline float getRenderProgress() { return float(scanLinesRendered) * 100 / image.getHeight(); }
   inline bool inProgress() { return renderInProgress; }

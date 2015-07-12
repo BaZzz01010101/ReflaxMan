@@ -52,6 +52,8 @@ public:
   bool operator != (const Matrix33 & m) const;
 
   Matrix33 operator - () const;
+
+  static Matrix33 makeRotation(float yaw, float pitch);
 };
 
 

@@ -258,3 +258,10 @@ void Texture::resize(const int width, const int height)
   this->height = height;
   colorBuf.resize(width * height);
 }
+
+void Texture::clear(ARGB bkColor)
+{
+  if (!colorBuf.empty())
+    for (ARGB * pCol = &colorBuf.front(), *lastPCol = &colorBuf.back(); pCol <= lastPCol; ++pCol)
+      *pCol = bkColor;
+}

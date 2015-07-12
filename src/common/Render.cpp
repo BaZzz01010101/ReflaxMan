@@ -4,8 +4,11 @@
 
 Render::Render(const char * exePath)
 {
-  loadScene(exePath);
+  scanLinesRendered = 0;
   renderInProgress = false;
+  additiveCounter = 0;
+
+  loadScene(exePath);
 }
 
 
@@ -18,7 +21,7 @@ void Render::loadScene(const char * exePath)
   std::string skyboxTextureFileName = std::string(exePath) + "./textures/skybox.tga";
   std::string planeTextureFileName = std::string(exePath) + "./textures/himiya.tga";
 
-  camera = Camera(Vector3(7.427f, 3.494f, -3.773f), Vector3(6.5981f, 3.127f, -3.352f), Vector3(-0.320f, 0.930f, 0.180f), 1.05f);
+  camera = Camera(Vector3(7.427f, 3.494f, -3.773f), Vector3(6.5981f, 3.127f, -3.352f), 1.05f);
 
   scene = Scene(Color(0.95f, 0.95f, 1.0f), 0.15f);
   scene.setSkyboxTexture(skyboxTextureFileName.c_str());
@@ -47,14 +50,32 @@ void Render::loadScene(const char * exePath)
 
 void Render::setImageSize(int width, int height)
 {
+  assert(width > 0);
+  assert(height > 0);
   image.resize(width, height);
   scanLinesRendered = 0;
+  renderInProgress = false;
+  additiveCounter = -1;
 }
 
-void Render::renderBegin(int reflectNum, int sampleNum)
+void Render::renderBegin(int reflectNum, int sampleNum, bool additive)
 {
   renderReflectNum = reflectNum;
   renderSampleNum = sampleNum;
+  renderAdditive = additive;
+  scanLinesRendered = 0;
+  renderInProgress = true;
+  renderCameraView = camera.view;
+  renderCameraEye = camera.eye;
+
+  if (additive)
+    additiveCounter++;
+  else
+    additiveCounter = 0;
+}
+
+void Render::renderRestart()
+{
   scanLinesRendered = 0;
   renderInProgress = true;
 }
@@ -75,14 +96,14 @@ int Render::renderNext(int scanLines)
     const float ry = float(y) - image.getHeight() / 2.0f;
     const float rz = float(image.getWidth()) / 2.0f / tanf(camera.fov / 2.0f);
 
-    Vector3 origin = camera.eye;
+    Vector3 origin = renderCameraEye;
     Vector3 ray(rx, ry, rz);
 
     if (renderSampleNum < 0)
     {
       if (!(x % renderSampleNum || y % renderSampleNum))
       {
-        ray = camera.view * ray;
+        ray = renderCameraView * ray;
         ARGB argb = scene.trace(origin, ray, renderReflectNum).argb();
         for (int qx = min(image.getWidth(), x + abs(renderSampleNum)) - 1; qx >= x; qx--)
         for (int qy = min(image.getHeight(), y + abs(renderSampleNum)) - 1; qy >= y; qy--)
@@ -91,17 +112,48 @@ int Render::renderNext(int scanLines)
     }
     else
     {
-      for (int ssx = 0; ssx < renderSampleNum; ssx++)
-      for (int ssy = 0; ssy < renderSampleNum; ssy++)
+      Color finColor;
+
+      if (renderSampleNum > 1)
       {
-        if (renderSampleNum > 1)
+        Vector3 randVec;
+        finColor = Color(0.0f, 0.0f, 0.0f);
+
+        if (renderAdditive)
+          randVec = Vector3::randomInsideSphere(0.5f / renderSampleNum);
+
+        for (int ssx = 0; ssx < renderSampleNum; ssx++)
+        for (int ssy = 0; ssy < renderSampleNum; ssy++)
         {
-          ray.x += float(ssx) / renderSampleNum;
-          ray.y += float(ssy) / renderSampleNum;
+          Vector3 ray(rx + float(ssx) / renderSampleNum, ry + float(ssy) / renderSampleNum, rz);
+
+          if (renderAdditive)
+            ray += randVec;
+
+          ray = renderCameraView * ray;
+          finColor += scene.trace(origin, ray, renderReflectNum);
         }
-        ray = camera.view * ray;
-        buf[x + y * image.getWidth()] = scene.trace(origin, ray, renderReflectNum).argb();
+
+        finColor /= float(renderSampleNum * renderSampleNum);
       }
+      else
+      {
+        if (renderAdditive)
+          ray += Vector3::randomInsideSphere(0.5f);
+
+        ray = renderCameraView * ray;
+        finColor = scene.trace(origin, ray, renderReflectNum);
+      }
+
+      if (renderAdditive)
+      {
+        ARGB & imageArgb = buf[x + y * image.getWidth()];
+        Color additiveColor = (float(additiveCounter) * Color(imageArgb) + finColor) / float(additiveCounter + 1);
+        imageArgb = additiveColor.argb();
+      }
+      else
+        buf[x + y * image.getWidth()] = finColor.argb();
+
     }
   }
 
@@ -111,8 +163,8 @@ int Render::renderNext(int scanLines)
   return scanLinesLeft;
 }
 
-void Render::renderAll(int reflectNum, int sampleNum)
+void Render::renderAll(int reflectNum, int sampleNum, bool additive)
 {
-  renderBegin(reflectNum, sampleNum);
+  renderBegin(reflectNum, sampleNum, additive);
   renderNext(image.getHeight());
 }

@@ -30,6 +30,7 @@ public:
   Color getTexelColor(const float u, const float v) const;
 
   void resize(const int width, const int height);
+  void clear(ARGB bkColor);
   inline int getWidth() const { return width; };
   inline int getHeight() const { return height; };
 };

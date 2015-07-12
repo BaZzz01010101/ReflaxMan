@@ -3,42 +3,29 @@
 
 Camera::Camera()
 {
+  yaw = 0;
+  pitch = 0;
 
+  turnAccel = defTurnAccel;
+  turnDecel = defTurnDecel;
+  shiftAccel = defShiftAccel;
+  shiftDecel = defShiftDecel;
+  maxTurnSpeed = defMaxTurnSpeed;
+  maxShiftSpeed = defMaxShiftSpeed;
+
+  turnRLSpeed = 0;
+  turnUDSpeed = 0;
+  shiftRLSpeed = 0;
+  shiftUDSpeed = 0;
+  shiftFBSpeed = 0;
 }
 
-Camera::Camera(const Camera & camera) 
-{
-  eye = camera.eye;
-  fov = camera.fov;
-  view = camera.view;
-  leftQuant = camera.leftQuant;
-  rightQuant = camera.rightQuant;
-  upQuant = camera.upQuant;
-  downQuant = camera.downQuant;
-  ccwQuant = camera.ccwQuant;
-  cwQuant = camera.cwQuant;
-}
-
-Camera & Camera::operator =(const Camera & camera)
-{
-  eye = camera.eye;
-  fov = camera.fov;
-  view = camera.view;
-  leftQuant = camera.leftQuant;
-  rightQuant = camera.rightQuant;
-  upQuant = camera.upQuant;
-  downQuant = camera.downQuant;
-  ccwQuant = camera.ccwQuant;
-  cwQuant = camera.cwQuant;
-
-  return *this;
-}
-
-Camera::Camera(const Vector3 & eye, const Vector3 & at, const Vector3 & up, const float fov) 
+Camera::Camera(const Vector3 & eye, const Vector3 & at, const float fov)
 {
   this->eye = eye;
   this->fov = fov;
 
+  Vector3 up(0.0f, 1.0f, 0.0f);
   Vector3 oz = normalize(at - eye);
   Vector3 ox = normalize(up % oz);
   Vector3 oy = normalize(oz % ox);
@@ -47,95 +34,217 @@ Camera::Camera(const Vector3 & eye, const Vector3 & at, const Vector3 & up, cons
   view.setCol(1, oy);
   view.setCol(2, oz);
 
-  initRotationQuants();
+  yaw = acos(ox.z);
+  if (ox.x < 0)
+    yaw = 2 * M_PI - yaw;
+  yaw -= M_PI_2;
+  pitch = asin(oz.y);
+
+  turnAccel = defTurnAccel;
+  turnDecel = defTurnDecel;
+  shiftAccel = defShiftAccel;
+  shiftDecel = defShiftDecel;
+  maxTurnSpeed = defMaxTurnSpeed;
+  maxShiftSpeed = defMaxShiftSpeed;
+
+  turnRLSpeed = 0;
+  turnUDSpeed = 0;
+  shiftRLSpeed = 0;
+  shiftUDSpeed = 0;
+  shiftFBSpeed = 0;
 }
 
+Camera::Camera(const Camera & camera)
+{
+  eye = camera.eye;
+  fov = camera.fov;
+  view = camera.view;
+
+  yaw = camera.yaw;
+  pitch = camera.pitch;
+
+  turnAccel = camera.turnAccel;
+  turnDecel = camera.turnDecel;
+  shiftAccel = camera.shiftAccel;
+  shiftDecel = camera.shiftDecel;
+  maxTurnSpeed = camera.maxTurnSpeed;
+  maxShiftSpeed = camera.maxShiftSpeed;
+
+  turnRLSpeed = 0;
+  turnUDSpeed = 0;
+  shiftRLSpeed = 0;
+  shiftUDSpeed = 0;
+  shiftFBSpeed = 0;
+}
+
+Camera & Camera::operator =(const Camera & camera)
+{
+  eye = camera.eye;
+  fov = camera.fov;
+  view = camera.view;
+
+  yaw = camera.yaw;
+  pitch = camera.pitch;
+
+  turnAccel = camera.turnAccel;
+  turnDecel = camera.turnDecel;
+  shiftAccel = camera.shiftAccel;
+  shiftDecel = camera.shiftDecel;
+  maxTurnSpeed = camera.maxTurnSpeed;
+  maxShiftSpeed = camera.maxShiftSpeed;
+
+  turnRLSpeed = 0;
+  turnUDSpeed = 0;
+  shiftRLSpeed = 0;
+  shiftUDSpeed = 0;
+  shiftFBSpeed = 0;
+
+  return *this;
+}
 
 Camera::~Camera()
 {
 }
 
-void Camera::initRotationQuants()
+void Camera::proceedControl(int controlFlags, int timePassedMs)
 {
-  const float Q = float(M_PI) / 1000.0f;
-  const float cosQ = cos(Q);
-  const float sinQ = sin(Q);
-  const float mcosQ = cos(-Q);
-  const float msinQ = sin(-Q);
+  float timePassed = timePassedMs / 1000.0f;
 
-  leftQuant = Matrix33(mcosQ, 0.0f, msinQ,
-    0.0f, 1.0f, 0.0f,
-    -msinQ, 0.0f, mcosQ);
+  float prevTurnRLSpeed = turnRLSpeed;
+  float prevTurnUDSpeed = turnUDSpeed;
+  float prevShiftRLSpeed = shiftRLSpeed;
+  float prevShiftUDSpeed = shiftUDSpeed;
+  float prevShiftFBSpeed = shiftFBSpeed;
 
-  rightQuant = Matrix33(cosQ, 0.0f, sinQ,
-    0.0f, 1.0f, 0.0f,
-    -sinQ, 0.0f, cosQ);
-
-  cwQuant = Matrix33(mcosQ, -msinQ, 0.0f,
-    msinQ, mcosQ, 0.0f,
-    0.0f, 0.0f, 1.0f);
-
-  ccwQuant = Matrix33(cosQ, -sinQ, 0.0f,
-    sinQ, cosQ, 0.0f,
-    0.0f, 0.0f, 1.0f);
-
-  upQuant = Matrix33(1.0f, 0.0f, 0.0f,
-    0.0f, cosQ, -sinQ,
-    0.0f, sinQ, cosQ);
-
-  downQuant = Matrix33(1.0f, 0.0f, 0.0f,
-    0.0f, mcosQ, -msinQ,
-    0.0f, msinQ, mcosQ);
-}
-
-void Camera::rotate(Rotation rot)
-{
-  switch (rot)
+  switch (controlFlags & (turnLeftMask | turnRightMask))
   {
-  case crLeft:
-    view = view * leftQuant;
+  case turnRightMask:
+    turnRLSpeed = clamp(turnRLSpeed + turnAccel * timePassed, -maxTurnSpeed, maxTurnSpeed);
     break;
-  case crRight:
-    view = view * rightQuant;
+  case turnLeftMask:
+    turnRLSpeed = clamp(turnRLSpeed - turnAccel * timePassed, -maxTurnSpeed, maxTurnSpeed);
     break;
-  case crUp:
-    view = view * upQuant;
+  default:
+    if (turnRLSpeed < 0.0f)
+      turnRLSpeed = min(0.0f, turnRLSpeed + turnDecel * timePassed);
+    else if (turnRLSpeed > 0.0f)
+      turnRLSpeed = max(0.0f, turnRLSpeed - turnDecel * timePassed);
     break;
-  case crDown:
-    view = view * downQuant;
+  }
+
+  switch (controlFlags & (turnUpMask | turnDownMask))
+  {
+  case turnUpMask:
+    turnUDSpeed = clamp(turnUDSpeed + turnAccel * timePassed, -maxTurnSpeed, maxTurnSpeed);
     break;
-  case crCwise:
-    view = view * cwQuant;
+  case turnDownMask:
+    turnUDSpeed = clamp(turnUDSpeed - turnAccel * timePassed, -maxTurnSpeed, maxTurnSpeed);
     break;
-  case crCcwise:
-    view = view * ccwQuant;
+  default:
+    if (turnUDSpeed < 0.0f)
+      turnUDSpeed = min(0.0f, turnUDSpeed + turnDecel * timePassed);
+    else if (turnUDSpeed > 0.0f)
+      turnUDSpeed = max(0.0f, turnUDSpeed - turnDecel * timePassed);
     break;
+  }
+
+  switch (controlFlags & (shiftLeftMask | shiftRightMask))
+  {
+  case shiftRightMask:
+    if (shiftRLSpeed < 0.0f)
+      shiftRLSpeed = clamp(shiftRLSpeed + (shiftDecel + shiftAccel) * timePassed, -maxShiftSpeed, maxShiftSpeed);
+    else
+      shiftRLSpeed = clamp(shiftRLSpeed + shiftAccel * timePassed, -maxShiftSpeed, maxShiftSpeed);
+    break;
+  case shiftLeftMask:
+    if (shiftRLSpeed > 0.0f)
+      shiftRLSpeed = clamp(shiftRLSpeed - (shiftDecel + shiftAccel) * timePassed, -maxShiftSpeed, maxShiftSpeed);
+    else
+      shiftRLSpeed = clamp(shiftRLSpeed - shiftAccel * timePassed, -maxShiftSpeed, maxShiftSpeed);
+    break;
+    break;
+  default:
+    if (shiftRLSpeed < 0.0f)
+      shiftRLSpeed = min(0.0f, shiftRLSpeed + shiftDecel * timePassed);
+    else if (shiftRLSpeed > 0.0f)
+      shiftRLSpeed = max(0.0f, shiftRLSpeed - shiftDecel * timePassed);
+    break;
+  }
+
+  switch (controlFlags & (shiftUpMask | shiftDownMask))
+  {
+  case shiftUpMask:
+    shiftUDSpeed = clamp(shiftUDSpeed + shiftAccel * timePassed, -maxShiftSpeed, maxShiftSpeed);
+    break;
+  case shiftDownMask:
+    shiftUDSpeed = clamp(shiftUDSpeed - shiftAccel * timePassed, -maxShiftSpeed, maxShiftSpeed);
+    break;
+  default:
+    if (shiftUDSpeed < 0.0f)
+      shiftUDSpeed = min(0.0f, shiftUDSpeed + shiftDecel * timePassed);
+    else if (shiftUDSpeed > 0.0f)
+      shiftUDSpeed = max(0.0f, shiftUDSpeed - shiftDecel * timePassed);
+    break;
+  }
+
+  switch (controlFlags & (shiftBackMask | shiftForwardMask))
+  {
+  case shiftForwardMask:
+    shiftFBSpeed = clamp(shiftFBSpeed + shiftAccel * timePassed, -maxShiftSpeed, maxShiftSpeed);
+    break;
+  case shiftBackMask:
+    shiftFBSpeed = clamp(shiftFBSpeed - shiftAccel * timePassed, -maxShiftSpeed, maxShiftSpeed);
+    break;
+  default:
+    if (shiftFBSpeed < 0.0f)
+      shiftFBSpeed = min(0.0f, shiftFBSpeed + shiftDecel * timePassed);
+    else if (shiftFBSpeed > 0.0f)
+      shiftFBSpeed = max(0.0f, shiftFBSpeed - shiftDecel * timePassed);
+    break;
+  }
+
+  float const M_2PI = 2 * M_PI;
+  yaw += timePassed * M_2PI * (turnRLSpeed + prevTurnRLSpeed) / 2.0f;
+  pitch = clamp(pitch + timePassed * M_2PI * (turnUDSpeed + prevTurnUDSpeed) / 2.0f, float(-0.95f * M_PI_2), float(0.95f * M_PI_2));
+
+  if (yaw >= M_2PI)
+    yaw -= M_2PI;
+  else if (yaw <= -M_2PI)
+    yaw += M_2PI;
+
+  view = Matrix33::makeRotation(yaw, pitch);
+  if (fabs(shiftRLSpeed) > FLT_EPSILON ||
+    fabs(shiftUDSpeed) > FLT_EPSILON ||
+    fabs(shiftFBSpeed) > FLT_EPSILON)
+  {
+
+    Vector3 right = view.getCol(0);
+    Vector3 up(0.0f, 1.0f, 0.0f);
+    Vector3 front = normalize(right % up);
+
+    float midShiftRLSpeed = 0.5f * (shiftRLSpeed + prevShiftRLSpeed);
+    float midShiftUDSpeed = 0.5f * (shiftUDSpeed + prevShiftUDSpeed);
+    float midShiftFBSpeed = 0.5f * (shiftFBSpeed + prevShiftFBSpeed);
+
+    Vector3 shift =
+      midShiftRLSpeed * view.getCol(0) +
+      midShiftUDSpeed * up +
+      midShiftFBSpeed * front;
+
+    float shiftSqLength = shift.sqLength();
+
+    if (shiftSqLength > defMaxShiftSpeed * defMaxShiftSpeed)
+      shift = shift * defMaxShiftSpeed / sqrtf(shiftSqLength);
+
+    eye += shift * timePassed;
   }
 }
 
-void Camera::move(Movement mov)
+bool Camera::inMotion()
 {
-  const float moveStep = 0.01f;
-
-  switch (mov)
-  {
-  case cmLeft:
-    eye -= view.getCol(0) * moveStep;
-    break;
-  case cmRight:
-    eye += view.getCol(0) * moveStep;
-    break;
-  case cmUp:
-    eye += view.getCol(1) * moveStep;
-    break;
-  case cmDown:
-    eye -= view.getCol(1) * moveStep;
-    break;
-  case cmForward:
-    eye += view.getCol(2) * moveStep;
-    break;
-  case cmBack:
-    eye -= view.getCol(2) * moveStep;
-    break;
-  }
+  return fabs(turnRLSpeed) > FLT_EPSILON ||
+         fabs(turnUDSpeed) > FLT_EPSILON ||
+         fabs(shiftRLSpeed) > FLT_EPSILON ||
+         fabs(shiftUDSpeed) > FLT_EPSILON ||
+         fabs(shiftFBSpeed) > FLT_EPSILON;
 }

@@ -6,7 +6,6 @@
 
 Scene::Scene()
 {
-
 }
 
 Scene::Scene(const Color & diffLightColor, float diffLightPower)
@@ -14,48 +13,6 @@ Scene::Scene(const Color & diffLightColor, float diffLightPower)
   this->diffLightColor = diffLightColor;
   this->diffLightPower = diffLightPower;
   envColor = diffLightColor * diffLightPower;
-
-//  std::string skyboxTextureFileName = std::string(exePath) + "./textures/skybox.tga";
-//  std::string planeTextureFileName = std::string(exePath) + "./textures/himiya.tga";
-//  bool retVal = skybox.loadTexture(skyboxTextureFileName.c_str());
-//  assert(retVal);
-//  retVal = planeTexture.loadFromFile(planeTextureFileName.c_str());
-//  assert(retVal);
-//
-//  camera = Camera(Vector3(7.427f, 3.494f, -3.773f), Vector3(6.5981f, 3.127f, -3.352f), Vector3(-0.320f, 0.930f, 0.180f), 1.05f);
-//
-//  sceneLights.push_back(new OmniLight(Vector3(11.8e9f, 4.26e9f, 3.08e9f), 6.96e8f, Color(1.0f, 1.0f, 0.95f), 1.0f));
-//  //sceneLights.push_back(new OmniLight(Vector3(-1.26e9f, 11.8e9f, 1.08e9f), 6.96e8f, Color(1.0f, 0.5f, 0.5f), 0.2f));
-//  //sceneLights.push_back(new OmniLight(Vector3(11.8e9f, 4.26e9f, 3.08e9f), 6.96e9f, Color(1.0f, 1.0f, 0.95f), 0.85f));
-//
-//  diffLightColor = Color(0.95f, 0.95f, 1.0f);
-//  diffLightPower = 0.15f;
-//
-//// set environment color to correct skybox texture depending on summary scene illumination
-//  envColor = diffLightColor * diffLightPower;
-//  for (SCENE_LIGHTS::const_iterator lt = sceneLights.begin(); lt != sceneLights.end(); ++lt)
-//    envColor += (*lt)->color * (*lt)->power;
-//
-//  sceneObjects.push_back(new Sphere(Vector3(-1.25f, 1.5f, -0.25f), 1.5f, Material(Material::mtMetal, Color(1.0f, 1.0f, 1.0f), 1.0f, 0.0f)));
-//  sceneObjects.push_back(new Sphere(Vector3(0.15f, 1.0f, 1.75f), 1.0f, Material(Material::mtMetal, Color(1.0f, 1.0f, 1.0f), 0.9f, 0.0f)));
-//
-//  sceneObjects.push_back(new Sphere(Vector3(-3.0f, 0.6f, -3.0f), 0.6f, Material(Material::mtDielectric, Color(1.0f, 1.0f, 1.0f), 0.0f, 0.0f)));
-//  sceneObjects.push_back(new Sphere(Vector3(-0.5f, 0.5f, -2.5f), 0.5f, Material(Material::mtDielectric, Color(0.5f, 1.0f, 0.15f), 0.8f, 0.0f)));
-//  sceneObjects.push_back(new Sphere(Vector3(1.0f, 0.4f, -1.5f), 0.4f, Material(Material::mtDielectric, Color(0.0f, 0.5f, 1.0f), 0.99f, 0.0f)));
-//
-//  sceneObjects.push_back(new Sphere(Vector3(1.8f, 0.4f, 0.1f), 0.4f, Material(Material::mtMetal, Color(1.0f, 0.65f, 0.45f), 0.99f, 0.0f)));
-//  sceneObjects.push_back(new Sphere(Vector3(1.7f, 0.5f, 1.9f), 0.5f, Material(Material::mtMetal, Color(1.0f, 0.90f, 0.60f), 0.8f, 0.0f)));
-//  sceneObjects.push_back(new Sphere(Vector3(0.6f, 0.6f, 4.2f), 0.6f, Material(Material::mtMetal, Color(0.9f, 0.9f, 0.9f), 0.1f, 0.0f)));
-//
-//  Triangle* tr = NULL;
-//
-//  tr = new Triangle(Vector3(-14.0f, 0.0f, -10.0f), Vector3(-14.0f, 0.0f, 10.0f), Vector3(14.0f, 0.0f, -10.0f), Material(Material::mtDielectric, Color(1.0f, 1.0f, 1.0f), 0.95f, 0.0f));
-//  tr->setTexture(&planeTexture, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f);
-//  sceneObjects.push_back(tr);
-//
-//  tr = new Triangle(Vector3(-14.0f, 0.0f, 10.0f), Vector3(14.0f, 0.0f, 10.0f), Vector3(14.0f, 0.0f, -10.0f), Material(Material::mtDielectric, Color(1.0f, 1.0f, 1.0f), 0.95f, 0.0f));
-//  tr->setTexture(&planeTexture, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f);
-//  sceneObjects.push_back(tr);
 }
 
 Scene::~Scene()
@@ -156,6 +113,7 @@ Color Scene::trace(Vector3 origin, Vector3 ray, int reflNumber) const
 
         Vector3 dropToLight = light->origin - drop;
 
+        // check only if drop point faced to light source
         if (dropToLight * norm > VERY_SMALL_NUMBER)
         {
           // make randomization within a radius of light source for smooth shadows
@@ -171,14 +129,10 @@ Color Scene::trace(Vector3 origin, Vector3 ray, int reflNumber) const
             Vector3 curDrop, curNorm, curReflect;
             Color curColor;
 
-            if (*obj != hitObject)
+            if (*obj != hitObject && (*obj)->trace(drop, dropToLightShadowRand, NULL, NULL, NULL, NULL, NULL))
             {
-
-              if ((*obj)->trace(drop, dropToLightShadowRand, NULL, NULL, NULL, NULL, NULL))
-              {
-                inShadow = true;
-                break;
-              }
+              inShadow = true;
+              break;
             }
           }
 
@@ -275,44 +229,3 @@ Color Scene::trace(Vector3 origin, Vector3 ray, int reflNumber) const
   }
   return pixelColor;
 }
-
-//Color Scene::tracePixel(const int x, const int y, const int aan) const
-//{
-//  assert(x >= 0);
-//  assert(y >= 0);
-//  assert(aan > 0);
-//  assert(camera.fov > VERY_SMALL_NUMBER);
-//  assert(camera.fov < M_PI);
-//
-//  if (x < 0 || y < 0 || aan <= 0 || camera.fov <= VERY_SMALL_NUMBER || camera.fov >= M_PI)
-//    return Color(0.0f, 0.0f, 0.0f);
-//
-//  const int maxReflections = 7;
-//  Color aaPixelColor = Color(0.0f, 0.0f, 0.0f);
-//
-//  const float flx = float(x) - screenWidth / 2.0f;
-//  const float fly = float(y) - screenHeight / 2.0f;
-//  const float screenPlaneZ = float(screenWidth) / 2.0f / tanf(camera.fov / 2.0f);
-//
-//  for (int aax = 0; aax < aan; aax++)
-//  for (int aay = 0; aay < aan; aay++)
-//  {
-//    Color colorMul = Color(1.0f, 1.0f, 1.0f);
-//    Vector3 randDir = Vector3::randomInsideSphere(1.0f);
-//    Color pixelColor = Color(0.0f, 0.0f, 0.0f);
-//    Vector3 origin = camera.eye;
-//    Vector3 ray(flx + float(aax) / aan,
-//                fly + float(aay) / aan,
-//                screenPlaneZ);
-//    ray = camera.view * ray;
-//
-//    pixelColor = trace(origin, ray, maxReflections);
-//
-//// summarize supersampled colors
-//    aaPixelColor = aaPixelColor + pixelColor;
-//  }
-//  aaPixelColor = aaPixelColor / float(aan * aan);
-//
-//  return aaPixelColor;
-//}
-
