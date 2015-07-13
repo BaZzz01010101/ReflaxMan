@@ -16,9 +16,9 @@ enum Control
   shiftBackMask = 1 << 11,
 };
 
-const float defTurnAccel = 5.0f;
-const float defTurnDecel = 5.0f;
-const float defMaxTurnSpeed = 0.25f;
+const float defTurnAccel = 2.0f;
+const float defTurnDecel = 2.0f;
+const float defMaxTurnSpeed = 0.2f;
 
 const float defShiftAccel = 50.0f;
 const float defShiftDecel = 50.0f;

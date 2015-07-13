@@ -1,4 +1,5 @@
 #pragma once
+#include <vector>
 #include "Scene.h"
 #include "Texture.h"
 #include "Camera.h"
@@ -6,7 +7,8 @@
 class Render
 {
 private:
-  int renderReflectNum; 
+  std::vector<Color> image;
+  int renderReflectNum;
   int renderSampleNum;
   bool renderAdditive;
   int additiveCounter;
@@ -16,24 +18,25 @@ private:
   Vector3 renderCameraEye;
 
 public:
-  Texture image;
   Camera camera;
   Scene scene;
+  int imageWidth;
+  int imageHeight;
 
   Render(const char * exePath);
   ~Render();
 
   void loadScene(const char * exePath);
   void setImageSize(int width, int height);
+  void copyImage(Texture & texture);
+  Color imagePixel(int x, int y);
 
   void renderBegin(int reflectNum, int sampleNum, bool additive);
   void renderRestart();
   int renderNext(int scanLines);
   void renderAll(int reflectNum, int sampleNum, bool additive);
   
-  inline float getRenderProgress() { return float(scanLinesRendered) * 100 / image.getHeight(); }
+  inline float getRenderProgress() { return float(scanLinesRendered) * 100 / imageHeight; }
   inline bool inProgress() { return renderInProgress; }
-  inline Color getImagePixel(float u, float v) { return image.getTexelColor(u, v); }
-  inline Color getImagePixel(int x, int y) { return image.getTexelColor(x, y); }
 };
 

@@ -18,6 +18,9 @@ char exeFullPath[MAX_PATH];
 bool scrnshotRequested = false;
 float scrnshotProgress = -1;
 DWORD scrnshotStartTicks = 0;
+std::string scrnshotFileName;
+bool scrnshotCancelRequested = false;
+bool scrnshotCancelConfirmed = false;
 LARGE_INTEGER perfFreq = { 0, 0 };
 bool initPerfSuccess = (QueryPerformanceFrequency(&perfFreq) && perfFreq.QuadPart > 0);
 bool quitMessage = false;
@@ -34,10 +37,14 @@ void print(HDC hdc, int x, int y, const char* format, ...)
   va_end(args);
 
   SetTextColor(hdc, 0xAAAAAA);
-  TextOutA(hdc, x-1, y-1, buffer, strlen(buffer));
-  TextOutA(hdc, x+1, y-1, buffer, strlen(buffer));
-  TextOutA(hdc, x-1, y+1, buffer, strlen(buffer));
-  TextOutA(hdc, x+1, y+1, buffer, strlen(buffer));
+  TextOutA(hdc, x - 1, y - 1, buffer, strlen(buffer));
+  TextOutA(hdc, x + 1, y - 1, buffer, strlen(buffer));
+  TextOutA(hdc, x - 1, y + 1, buffer, strlen(buffer));
+  TextOutA(hdc, x + 1, y + 1, buffer, strlen(buffer));
+  TextOutA(hdc, x, y - 1, buffer, strlen(buffer));
+  TextOutA(hdc, x + 1, y, buffer, strlen(buffer));
+  TextOutA(hdc, x, y + 1, buffer, strlen(buffer));
+  TextOutA(hdc, x + 1, y, buffer, strlen(buffer));
   SetTextColor(hdc, 0);
   TextOutA(hdc, x, y, buffer, strlen(buffer));
 }
@@ -57,13 +64,17 @@ void DrawScreenshotStats(HDC hdc)
   GetTextMetricsA(hdc, &tm);
   SetBkMode(hdc, TRANSPARENT);
   SetTextColor(hdc, 0);
-  int y = 0;
+  int lineHeight = tm.tmHeight + 1;
+  int x = 3;
+  int y = 3;
 
-  print(hdc, 0, y, "Saving screenshot");
-  y += tm.tmHeight;
+  print(hdc, x, y, "Saving screenshot:");
+  
+  y += lineHeight;
+  print(hdc, x, y, scrnshotFileName.c_str());
 
-  print(hdc, 0, y, "Progress: %.2f %%", scrnshotProgress);
-  y += tm.tmHeight;
+  y += lineHeight * 2;
+  print(hdc, x, y, "Progress: %.2f %%", scrnshotProgress);
 
   DWORD ticksPassed = GetTickCount() - scrnshotStartTicks;
   DWORD ticksLeft = DWORD(ticksPassed * 100 / scrnshotProgress) - ticksPassed;
@@ -73,7 +84,15 @@ void DrawScreenshotStats(HDC hdc)
   int min = ticksLeft / 60000;
   ticksLeft = ticksLeft % 60000;
   int sec = ticksLeft / 1000;
-  print(hdc, 0, y, "Estimated time left: %i h %02i m %02i s", hr, min, sec);
+  y += lineHeight;
+  print(hdc, x, y, "Estimated time left: %i h %02i m %02i s", hr, min, sec);
+
+  if (scrnshotCancelRequested)
+  {
+    y += lineHeight * 2;
+    print(hdc, x, y, "Do you want to cancel ? ( Y / N ) ");
+
+  }
 }
 
 void DrawSceneStats(HDC hdc)
@@ -83,32 +102,46 @@ void DrawSceneStats(HDC hdc)
   GetTextMetricsA(hdc, &tm);
   SetBkMode(hdc, TRANSPARENT);
   SetTextColor(hdc, 0);
-  int y = 0;
+  int lineHeight = tm.tmHeight + 1;
+  int x = 3;
+  int y = 3;
 
   if (frameTime < 10)
-    print(hdc, 0, y, "frame time: %.0f ms", frameTime * 1000);
+    print(hdc, x, y, "Frame time: %.0f ms", frameTime * 1000);
   else
-    print(hdc, 0, y, "frame time: %.03f s", frameTime);
+    print(hdc, x, y, "Frame time: %.03f s", frameTime);
 
-  y += tm.tmHeight;
-  print(hdc, 0, y, "camera eye: [%.03f, %.03f, %.03f]", render->camera.eye.x, render->camera.eye.y, render->camera.eye.z);
+  y += tm.tmHeight * 2;
+  print(hdc, x, y, "WSAD : moving");
 
-  y += tm.tmHeight;
-  Vector3 at = render->camera.eye + render->camera.view.getCol(2);
-  print(hdc, 0, y, "camera at: [%.03f, %.03f, %.03f]", at.x, at.y, at.z);
+  y += lineHeight;
+  print(hdc, x, y, "Cursor : turning");
 
-  y += tm.tmHeight;
-  Vector3 up = render->camera.view.getCol(1);
-  print(hdc, 0, y, "camera up: [%.03f, %.03f, %.03f]", up.x, up.y, up.z);
+  y += lineHeight;
+  print(hdc, x, y, "Space : ascenting");
 
-  y += tm.tmHeight;
-  print(hdc, 0, y, "yaw / pitch: %.03f / %.03f", render->camera.yaw, render->camera.pitch);
+  y += lineHeight;
+  print(hdc, x, y, "Ctrl : descenting");
 
-  y += tm.tmHeight;
-  print(hdc, 0, y, "turnSpeed: RL:%.03f UD:%.03f", render->camera.turnRLSpeed, render->camera.turnUDSpeed);
+  //y += tm.tmHeight * 2;
+  //print(hdc, x, y, "camera eye: [%.03f, %.03f, %.03f]", render->camera.eye.x, render->camera.eye.y, render->camera.eye.z);
 
-  y += tm.tmHeight;
-  print(hdc, 0, y, "shiftSpeed: RL:%.03f UD:%.03f FB:%.03f", render->camera.shiftRLSpeed, render->camera.shiftUDSpeed, render->camera.shiftFBSpeed);
+  //y += lineHeight;
+  //Vector3 at = render->camera.eye + render->camera.view.getCol(2);
+  //print(hdc, x, y, "camera at: [%.03f, %.03f, %.03f]", at.x, at.y, at.z);
+
+  //y += lineHeight;
+  //Vector3 up = render->camera.view.getCol(1);
+  //print(hdc, x, y, "camera up: [%.03f, %.03f, %.03f]", up.x, up.y, up.z);
+
+  //y += lineHeight;
+  //print(hdc, x, y, "yaw / pitch: %.03f / %.03f", render->camera.yaw, render->camera.pitch);
+
+  //y += lineHeight;
+  //print(hdc, x, y, "turnSpeed: RL:%.03f UD:%.03f", render->camera.turnRLSpeed, render->camera.turnUDSpeed);
+
+  //y += lineHeight;
+  //print(hdc, x, y, "shiftSpeed: RL:%.03f UD:%.03f FB:%.03f", render->camera.shiftRLSpeed, render->camera.shiftUDSpeed, render->camera.shiftFBSpeed);
 }
 
 void DrawImage(HWND hWnd, HDC hdc)
@@ -117,7 +150,7 @@ void DrawImage(HWND hWnd, HDC hdc)
 
   if (imageReady)
   {
-    if (bmWidth != render->image.getWidth() || bmHeight != render->image.getHeight())
+    if (bmWidth != render->imageWidth || bmHeight != render->imageHeight)
     {
       if (memDC)
       {
@@ -133,8 +166,8 @@ void DrawImage(HWND hWnd, HDC hdc)
       }
 
       bmi.bmiHeader.biSize = sizeof(bmi.bmiHeader);
-      bmi.bmiHeader.biWidth = max(render->image.getWidth(), 1);
-      bmi.bmiHeader.biHeight = max(render->image.getHeight(), 1);
+      bmi.bmiHeader.biWidth = max(render->imageWidth, 1);
+      bmi.bmiHeader.biHeight = max(render->imageHeight, 1);
       bmi.bmiHeader.biPlanes = 1;
       bmi.bmiHeader.biBitCount = 32;
       bmi.bmiHeader.biCompression = BI_RGB;
@@ -150,8 +183,8 @@ void DrawImage(HWND hWnd, HDC hdc)
       if (memDC && bitmap)
       {
         SelectObject(memDC, bitmap);
-        bmWidth = render->image.getWidth();
-        bmHeight = render->image.getHeight();
+        bmWidth = render->imageWidth;
+        bmHeight = render->imageHeight;
       }
       else
       {
@@ -162,7 +195,7 @@ void DrawImage(HWND hWnd, HDC hdc)
 
     for (int y = 0; y < bmHeight; ++y)
     for (int x = 0; x < bmWidth; ++x)
-      pixels[x + y * bmWidth] = render->getImagePixel(x, y).argb();
+      pixels[x + y * bmWidth] = render->imagePixel(x, y).argb();
     
     imageReady = false;
   }
@@ -174,7 +207,11 @@ void DrawImage(HWND hWnd, HDC hdc)
       clientRect.left = clientRect.right = clientRect.top = clientRect.bottom = 0;
 
     SetStretchBltMode(hdc, HALFTONE);
-    StretchBlt(hdc, 0, 0, clientRect.right, clientRect.bottom, memDC, 0, 0, bmWidth, bmHeight, SRCCOPY);
+    float bmAspect = float(bmWidth) / bmHeight;
+    float clientAspect = float(clientRect.right) / clientRect.bottom;
+    int yGap = int(bmWidth / clientAspect) - bmHeight;
+
+    StretchBlt(hdc, 0, 0, clientRect.right, clientRect.bottom, memDC, 0, -yGap / 2, bmWidth, bmHeight + yGap, SRCCOPY);
   }
 }
 
@@ -247,6 +284,19 @@ void OnKeyDown(int Key)
   case VK_F2:
     scrnshotRequested = true;
     break;
+  case VK_ESCAPE:
+    if (scrnshotRequested)
+      scrnshotCancelRequested = true;
+    break;
+  case 'Y':
+    if (scrnshotCancelRequested)
+    {
+      scrnshotCancelRequested = false;
+      scrnshotCancelConfirmed = true;
+    }
+  case 'N':
+    if (scrnshotCancelRequested)
+      scrnshotCancelRequested = false;
   }
 }
 
@@ -329,7 +379,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
   UNREFERENCED_PARAMETER(hPrevInstance);
   UNREFERENCED_PARAMETER(lpCmdLine);
 
-  font = CreateFontA(-9, -4, 0, 0, FW_NORMAL, false, false, false, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, FF_DONTCARE, "Aria");
+  font = CreateFontA(-10, -4, 0, 0, FW_NORMAL, false, false, false, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, FF_DONTCARE, "Aria");
 
   char exeFullName[MAX_PATH];
   char* lpExeName;
@@ -363,9 +413,12 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     UpdateWindow(hWnd);
 
     MSG msg;
-    int movingSampleNum = -4;
-    int normalSampleNum = 1;
-    int sampleNum = normalSampleNum;
+    int motionSampleNum = -4;
+    const int staticSampleNum = 1;
+    const int motionReflNum = 3;
+    const int staticReflNum = 7;
+    int sampleNum = staticSampleNum;
+    int reflNum = staticReflNum;
 
     while (!quitMessage)
     {
@@ -382,30 +435,36 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
           const int scrnshotWidth = 1680;
           const int scrnshotHeight = 1050;
           const int scrnshotRefections = 7;
-          const int scrnshotSampleNumber = 2;
+          const int scrnshotSampleNumber = 64;
+
+          FILETIME ft;
+          const int bufSize = 256;
+          char name[bufSize];
+          GetSystemTimeAsFileTime(&ft);
+          sprintf(name, "scrnshoot_%08X%08X.bmp", ft.dwHighDateTime, ft.dwLowDateTime);
+          scrnshotFileName = std::string(exeFullPath) + name;
 
           render->setImageSize(scrnshotWidth, scrnshotHeight);
-
           scrnshotStartTicks = GetTickCount();
           render->renderBegin(scrnshotRefections, scrnshotSampleNumber, false);
         }
 
-        if (render->renderNext(1))
+        if (!scrnshotCancelConfirmed && render->renderNext(1))
         {
           scrnshotProgress = render->getRenderProgress();
           InvalidateRect(hWnd, NULL, false);
         }
         else
         {
-          FILETIME ft;
-          const int bufSize = 256;
-          char name[bufSize];
-          GetSystemTimeAsFileTime(&ft);
-          sprintf(name, "scrnshoot_%08X%08X.bmp", ft.dwHighDateTime, ft.dwLowDateTime);
-          std::string str = std::string(exeFullPath) + name;
-          render->image.saveToFile(str.c_str());
+          if (!scrnshotCancelConfirmed)
+          {
+            Texture imageTexture(render->imageWidth, render->imageHeight);
+            render->copyImage(imageTexture);
+            imageTexture.saveToFile(scrnshotFileName.c_str());
+          }
           scrnshotProgress = -1;
           scrnshotRequested = false;
+          scrnshotCancelConfirmed = false;
 
           RECT clientRect;
           if (GetClientRect(hWnd, &clientRect) && clientRect.right && clientRect.bottom)
@@ -419,12 +478,19 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         ProceedControl();
         bool inMotion = controlFlags || render->camera.inMotion();
 
-        if (!render->inProgress() || (inMotion && sampleNum != movingSampleNum))
+        if (!render->inProgress() || (inMotion && sampleNum != motionSampleNum))
         {
-          int prevSampleNum = sampleNum;
-          sampleNum = inMotion ? movingSampleNum : normalSampleNum;
-          bool renderAdditive = (!inMotion && sampleNum == prevSampleNum);
-          render->renderBegin(7, sampleNum, renderAdditive);
+          if (inMotion)
+          {
+            if (frameTime > 0.030f)
+              motionSampleNum = max(motionSampleNum - 1, -8);
+            else if (frameTime < 0.015f)
+              motionSampleNum = min(motionSampleNum + 1, -1);
+          }
+
+          sampleNum = inMotion ? motionSampleNum : staticSampleNum;
+          reflNum = inMotion ? motionReflNum : staticReflNum;
+          render->renderBegin(reflNum, sampleNum, !inMotion);
         }
 
         if (!imageReady)

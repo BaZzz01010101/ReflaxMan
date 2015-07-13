@@ -52,10 +52,30 @@ void Render::setImageSize(int width, int height)
 {
   assert(width > 0);
   assert(height > 0);
-  image.resize(width, height);
+  image.resize(width * height);
+  imageWidth = width;
+  imageHeight = height;
   scanLinesRendered = 0;
   renderInProgress = false;
-  additiveCounter = -1;
+  additiveCounter = 0;
+}
+
+void Render::copyImage(Texture & texture)
+{
+  if (imageWidth == texture.getWidth() && imageHeight == texture.getHeight())
+  {
+    ARGB * pArgb = texture.getColorBuffer();
+    for (int i = 0, cnt = imageWidth * imageHeight; i < cnt; i++)
+      *pArgb = image[i].argb();
+  }
+  else texture.clear(0xFF00FF);
+}
+
+Color Render::imagePixel(int x, int y) 
+{ 
+  return additiveCounter > 1 ? 
+         image[x + y * imageWidth] / float(additiveCounter) : 
+         image[x + y * imageWidth]; 
 }
 
 void Render::renderBegin(int reflectNum, int sampleNum, bool additive)
@@ -85,16 +105,15 @@ int Render::renderNext(int scanLines)
   if (!renderInProgress)
     return -1;
 
-  int scanLinesLeft = image.getHeight() - scanLinesRendered;
+  int scanLinesLeft = imageHeight - scanLinesRendered;
   scanLines = min(scanLines, scanLinesLeft);
-  ARGB * buf = image.getColorBuffer();
 
   for (int y = scanLinesRendered + scanLines - 1; y >= scanLinesRendered; y--)
-  for (int x = image.getWidth() - 1; x >= 0; x--)
+  for (int x = imageWidth - 1; x >= 0; x--)
   {
-    const float rx = float(x) - image.getWidth() / 2.0f;
-    const float ry = float(y) - image.getHeight() / 2.0f;
-    const float rz = float(image.getWidth()) / 2.0f / tanf(camera.fov / 2.0f);
+    const float rx = float(x) - imageWidth / 2.0f;
+    const float ry = float(y) - imageHeight / 2.0f;
+    const float rz = float(imageWidth) / 2.0f / tanf(camera.fov / 2.0f);
 
     Vector3 origin = renderCameraEye;
     Vector3 ray(rx, ry, rz);
@@ -104,10 +123,11 @@ int Render::renderNext(int scanLines)
       if (!(x % renderSampleNum || y % renderSampleNum))
       {
         ray = renderCameraView * ray;
-        ARGB argb = scene.trace(origin, ray, renderReflectNum).argb();
-        for (int qx = min(image.getWidth(), x + abs(renderSampleNum)) - 1; qx >= x; qx--)
-        for (int qy = min(image.getHeight(), y + abs(renderSampleNum)) - 1; qy >= y; qy--)
-          buf[qx + qy * image.getWidth()] = argb;
+        
+        Color col = scene.trace(origin, ray, renderReflectNum);
+        for (int qx = min(imageWidth, x + abs(renderSampleNum)) - 1; qx >= x; qx--)
+        for (int qy = min(imageHeight, y + abs(renderSampleNum)) - 1; qy >= y; qy--)
+          image[qx + qy * imageWidth] = col;
       }
     }
     else
@@ -145,14 +165,10 @@ int Render::renderNext(int scanLines)
         finColor = scene.trace(origin, ray, renderReflectNum);
       }
 
-      if (renderAdditive)
-      {
-        ARGB & imageArgb = buf[x + y * image.getWidth()];
-        Color additiveColor = (float(additiveCounter) * Color(imageArgb) + finColor) / float(additiveCounter + 1);
-        imageArgb = additiveColor.argb();
-      }
+      if (additiveCounter > 1)
+        image[x + y * imageWidth] += finColor;
       else
-        buf[x + y * image.getWidth()] = finColor.argb();
+        image[x + y * imageWidth] = finColor;
 
     }
   }
@@ -166,5 +182,5 @@ int Render::renderNext(int scanLines)
 void Render::renderAll(int reflectNum, int sampleNum, bool additive)
 {
   renderBegin(reflectNum, sampleNum, additive);
-  renderNext(image.getHeight());
+  renderNext(imageHeight);
 }
