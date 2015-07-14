@@ -4,7 +4,7 @@
 
 #include "..\airly\airly.h"
 #include "..\airly\Render.h"
-#include "defaults.h"
+#include "..\airly\defaults.h"
 
 HWND hWnd = NULL;
 Render * render = NULL;
@@ -225,18 +225,20 @@ void DrawImage(const HWND hWnd, const HDC hdc)
 
 void OnResize(const HWND hWnd, const int width, const int height)
 {
-  UNREFERENCED_PARAMETER(width);
-  UNREFERENCED_PARAMETER(height);
+  #ifdef _MSC_VER
+    UNREFERENCED_PARAMETER(width);
+    UNREFERENCED_PARAMETER(height);
+  #endif
 
   if (!scrnshotSaving)
   {
     RECT clientRect;
-    if (GetClientRect(hWnd, &clientRect) && clientRect.right && clientRect.bottom)
+    if (GetClientRect(hWnd, &clientRect))
     {
       const int width = clientRect.right;
       const int height = clientRect.bottom;
       if (width && height && (width != render->imageWidth || height != render->imageHeight))
-        render->setImageSize(clientRect.right, clientRect.bottom);
+        render->setImageSize(width, height);
     }
   }
 }
@@ -252,17 +254,11 @@ void OnPaint(const HWND hWnd, const HDC hdc)
     const HDC dc = CreateCompatibleDC(hdc);
     SelectObject(dc, bm);
 
+    DrawImage(hWnd, dc);
     if (scrnshotProgress >= 0)
-    {
-      DrawImage(hWnd, dc);
-//      FillRect(dc, &clientRect, (HBRUSH)GetStockObject(DKGRAY_BRUSH));
       DrawScreenshotStats(dc);
-    }
     else
-    {
-      DrawImage(hWnd, dc);
       DrawSceneStats(dc);
-    }
 
     BitBlt(hdc, 0, 0, width, height, dc, 0, 0, SRCCOPY);
     DeleteDC(dc);
@@ -405,7 +401,13 @@ void ScrnshotSavingPulse()
     const int bufSize = 256;
     char name[bufSize];
     GetSystemTimeAsFileTime(&ft);
-    sprintf(name, "scrnshoot_%08X%08X.bmp", ft.dwHighDateTime, ft.dwLowDateTime);
+
+    #ifdef _MSC_VER
+      _snprintf(name, bufSize, "scrnshoot_%08X%08X.bmp", ft.dwHighDateTime, ft.dwLowDateTime);
+    #else
+      snprintf(name, bufSize, "scrnshoot_%08X%08X.bmp", ft.dwHighDateTime, ft.dwLowDateTime);
+    #endif
+
     scrnshotFileName = exeFullPath;
     scrnshotFileName += name;
 
@@ -492,8 +494,10 @@ void ImageRenderPulse()
 
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-  UNREFERENCED_PARAMETER(hPrevInstance);
-  UNREFERENCED_PARAMETER(lpCmdLine);
+  #ifdef _MSC_VER
+    UNREFERENCED_PARAMETER(hPrevInstance);
+    UNREFERENCED_PARAMETER(lpCmdLine);
+  #endif
 
   WNDCLASSEXA wcex;
   wcex.cbSize = sizeof(wcex);
