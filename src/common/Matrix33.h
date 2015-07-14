@@ -19,12 +19,12 @@ public:
   #pragma pack(pop)
 
   Matrix33();
-  Matrix33(const Matrix33 & v);
-  Matrix33 & operator = (const Matrix33 & _m);
   Matrix33(const Vector3 & u, const Vector3 & v, const Vector3 & n);
   Matrix33(float f11, float f12, float f13,
-                     float f21, float f22, float f23,
-                     float f31, float f32, float f33);
+    float f21, float f22, float f23,
+    float f31, float f32, float f33);
+  Matrix33(const Matrix33 & v);
+  Matrix33 & operator = (const Matrix33 & _m);
   ~Matrix33();
 
   float det() const;
@@ -53,7 +53,7 @@ public:
 
   Matrix33 operator - () const;
 
-  static Matrix33 makeRotation(float yaw, float pitch);
+  static Matrix33 makeRotation(const float yaw, const float pitch);
 };
 
 

@@ -1,5 +1,4 @@
 #include "airly.h"
-
 #include "Scene.h"
 #include "Sphere.h"
 #include "Triangle.h"
@@ -63,7 +62,7 @@ bool Scene::setSkyboxTexture(const char * fileName)
 
 Color Scene::trace(Vector3 origin, Vector3 ray, int reflNumber) const
 {
-  Vector3 randDir = Vector3::randomInsideSphere(1.0f);
+  const Vector3 randDir = Vector3::randomInsideSphere(1.0f);
   Color mulColor = Color(1.0f, 1.0f, 1.0f);
   Color pixelColor = Color(0.0f, 0.0f, 0.0f);
 
@@ -100,25 +99,24 @@ Color Scene::trace(Vector3 origin, Vector3 ray, int reflNumber) const
     // if have intersection - proceed it
     if (hitObject)
     {
-      float rayLen = ray.length();
-      float normLen = norm.length();
-      float reflectLen = reflect.length();
+      const float rayLen = ray.length();
+      const float normLen = norm.length();
+      const float reflectLen = reflect.length();
       Color sumLightColor = Color(0.0f, 0.0f, 0.0f);
       Color sumSpecColor = Color(0.0f, 0.0f, 0.0f);
 
       // tracing each light source visibility
       for (SCENE_LIGHTS::const_iterator lt = sceneLights.begin(); lt != sceneLights.end(); ++lt)
       {
-        OmniLight* light = *lt;
-
-        Vector3 dropToLight = light->origin - drop;
+        const OmniLight * light = *lt;
+        const Vector3 dropToLight = light->origin - drop;
 
         // check only if drop point faced to light source
         if (dropToLight * norm > VERY_SMALL_NUMBER)
         {
           // make randomization within a radius of light source for smooth shadows
-          float lightRadius = light->radius;
-          Vector3 dropToLightShadowRand = dropToLight + randDir * lightRadius;
+          const float lightRadius = light->radius;
+          const Vector3 dropToLightShadowRand = dropToLight + randDir * lightRadius;
           bool inShadow = false;
 
           // checking whether we are in the shadow of some scene object
@@ -126,10 +124,8 @@ Color Scene::trace(Vector3 origin, Vector3 ray, int reflNumber) const
             obj != sceneObjects.end();
             ++obj)
           {
-            Vector3 curDrop, curNorm, curReflect;
-            Color curColor;
-
-            if (*obj != hitObject && (*obj)->trace(drop, dropToLightShadowRand, NULL, NULL, NULL, NULL, NULL))
+            if (*obj != hitObject && 
+              (*obj)->trace(drop, dropToLightShadowRand, NULL, NULL, NULL, NULL, NULL))
             {
               inShadow = true;
               break;
@@ -139,24 +135,23 @@ Color Scene::trace(Vector3 origin, Vector3 ray, int reflNumber) const
           // if we are not in the shadow - proceed illumination
           if (!inShadow)
           {
-            float dropToLightLen = dropToLight.length();
-
             // calc illumination from current light source
-            Color & lightColor = light->color;
-            float lightPower = light->power;
+            const float dropToLightLen = dropToLight.length();
+            const Color & lightColor = light->color;
+            const float lightPower = light->power;
             float a = dropToLightLen * normLen;
-            float lightDropCos = (a > VERY_SMALL_NUMBER) ? dropToLight * norm / a : 0.0f;
+            const float lightDropCos = (a > VERY_SMALL_NUMBER) ? dropToLight * norm / a : 0.0f;
 
             if (lightPower > VERY_SMALL_NUMBER)
               sumLightColor += lightColor * lightDropCos * lightPower;
 
             // calc specular reflection from current light source
             a = dropToLight.sqLength();
-            float lightAngularRadiusSqCos = (a > VERY_SMALL_NUMBER) ? 1.0f - lightRadius * lightRadius / a : 0.0f;
+            const float lightAngularRadiusSqCos = (a > VERY_SMALL_NUMBER) ? 1.0f - lightRadius * lightRadius / a : 0.0f;
 
             if (lightAngularRadiusSqCos > 0)
             {
-              Vector3 dropToLightRand = dropToLight.normalized() + randDir * (1.0f - dropMaterial.reflectivity);
+              const Vector3 dropToLightRand = dropToLight.normalized() + randDir * (1.0f - dropMaterial.reflectivity);
               a = dropToLightRand.length() * reflectLen;
               float reflectSpecularCos = (a > VERY_SMALL_NUMBER) ? dropToLightRand * reflect / a : 0.0f;
               reflectSpecularCos = clamp(reflectSpecularCos + (1.0f - sqrtf(lightAngularRadiusSqCos)), 0.0f, 1.0f);
@@ -176,9 +171,9 @@ Color Scene::trace(Vector3 origin, Vector3 ray, int reflNumber) const
         }
       }
 
-      float reflectivity = dropMaterial.reflectivity;
-      Color & color = dropMaterial.color;
-      Material::Type type = dropMaterial.type;
+      const float reflectivity = dropMaterial.reflectivity;
+      const Color & color = dropMaterial.color;
+      const Material::Type type = dropMaterial.type;
 
       sumLightColor = diffLightColor * diffLightPower + sumLightColor;
 
@@ -186,9 +181,9 @@ Color Scene::trace(Vector3 origin, Vector3 ray, int reflNumber) const
       if (type == Material::mtDielectric)
       {
         // for dielectric materials count reflectivity using rough approximation of the Fresnel curve
-        float a = rayLen * normLen;
-        float dropAngleCos = (a > VERY_SMALL_NUMBER) ? clamp(ray * -norm / a, 0.0f, 1.0f) : 0.0f;
-        float refl = 0.2f + 0.8f * pow(1.0f - dropAngleCos, 3.0f);
+        const float a = rayLen * normLen;
+        const float dropAngleCos = (a > VERY_SMALL_NUMBER) ? clamp(ray * -norm / a, 0.0f, 1.0f) : 0.0f;
+        const float refl = 0.2f + 0.8f * pow(1.0f - dropAngleCos, 3.0f);
 
         finColor = (1.0f - refl) * color * sumLightColor + sumSpecColor;
         finColor *= mulColor;
@@ -199,7 +194,7 @@ Color Scene::trace(Vector3 origin, Vector3 ray, int reflNumber) const
       else
       {
         // for metal materials roughly set reflectivity equal to 0.8 according to Fresnel curve 
-        float refl = 0.8f;
+        const float refl = 0.8f;
 
         finColor = (1.0f - refl) * color * sumLightColor + sumSpecColor;
         finColor *= mulColor;

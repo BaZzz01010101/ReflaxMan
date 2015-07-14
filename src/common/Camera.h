@@ -16,13 +16,16 @@ enum Control
   shiftBackMask = 1 << 11,
 };
 
-const float defTurnAccel = 2.0f;
-const float defTurnDecel = 2.0f;
-const float defMaxTurnSpeed = 0.2f;
+namespace Default
+{
+  const float turnAccel = 2.0f;
+  const float turnDecel = 2.0f;
+  const float maxTurnSpeed = 0.2f;
 
-const float defShiftAccel = 50.0f;
-const float defShiftDecel = 50.0f;
-const float defMaxShiftSpeed = 10.0f;
+  const float shiftAccel = 50.0f;
+  const float shiftDecel = 50.0f;
+  const float maxShiftSpeed = 10.0f;
+}
 
 class Camera
 {
@@ -49,12 +52,12 @@ public:
   Matrix33 view;
 
   Camera();
-  Camera(const Vector3 & eye, const Vector3 & at, /*const Vector3 & up, */const float fov);
+  Camera(const Vector3 & eye, const Vector3 & at, const float fov);
   Camera(const Camera & camera);
   Camera & operator =(const Camera & camera);
   ~Camera();
 
-  void proceedControl(int controlFlags, int timePassedMs);
-  bool inMotion();
+  void proceedControl(const int controlFlags, const int timePassedMs);
+  bool inMotion() const;
 };
 

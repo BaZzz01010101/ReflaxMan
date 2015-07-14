@@ -9,22 +9,6 @@ Texture::Texture()
   height = 0;
 }
 
-Texture::Texture(const Texture & texture)
-{
-  width = texture.width;
-  height = texture.height;
-  colorBuf = texture.colorBuf;
-}
-
-Texture & Texture::operator = (const Texture & texture)
-{
-  width = texture.width;
-  height = texture.height;
-  colorBuf = texture.colorBuf;
-
-  return *this;
-}
-
 Texture::Texture(const int width, const int height)
 {
   resize(width, height);
@@ -56,8 +40,8 @@ bool Texture::loadFromTGAFile(const char * fileName)
     {
       width = header.xsize;
       height = header.ysize;
-      int bpp = header.bpix;
-      int colorOffset = sizeof(header) + header.idlen + header.cmlen * header.cmbits / 8;
+      const int bpp = header.bpix;
+      const int colorOffset = sizeof(header)+header.idlen + header.cmlen * header.cmbits / 8;
 
       if (!fseek(fh, colorOffset, SEEK_SET) 
         && 
@@ -65,8 +49,8 @@ bool Texture::loadFromTGAFile(const char * fileName)
       {
         int pixelCount = width * height;
         colorBuf.resize(pixelCount);
-        ARGB* pColor = getColorBuffer();
-        int pixelSize = bpp / 8;
+        ARGB * pColor = getColorBuffer();
+        const int pixelSize = bpp / 8;
 
         while (pixelCount > 0)
         {
@@ -93,7 +77,7 @@ bool Texture::loadFromTGAFile(const char * fileName)
   return retVal;
 }
 
-bool Texture::saveToTGAFile(const char * fileName)
+bool Texture::saveToTGAFile(const char * fileName) const
 {
   bool retVal = false;
   FILE * fh = fopen(fileName, "wb");
@@ -122,7 +106,7 @@ bool Texture::saveToTGAFile(const char * fileName)
   return retVal;
 }
 
-bool Texture::saveToBMPFile(const char * fileName)
+bool Texture::saveToBMPFile(const char * fileName) const
 {
   bool retVal = false;
   FILE * fh = fopen(fileName, "wb");
@@ -160,13 +144,13 @@ bool Texture::saveToBMPFile(const char * fileName)
 
 bool Texture::loadFromFile(const char * fileName)
 {
-  std::string fileNameString = fileName;
-  unsigned int dotIndex = fileNameString.find_last_of('.');
+  const std::string fileNameString = fileName;
+  const size_t dotIndex = fileNameString.find_last_of('.');
 
   if (dotIndex != std::string::npos)
   {
-    int extLen = fileNameString.length() - dotIndex;
-    std::string fileExt = fileNameString.substr(dotIndex, extLen);
+    const size_t extLen = fileNameString.length() - dotIndex;
+    const std::string fileExt = fileNameString.substr(dotIndex, extLen);
 
     if (fileExt == ".tga")
       return loadFromTGAFile(fileName);
@@ -174,15 +158,15 @@ bool Texture::loadFromFile(const char * fileName)
   return false;
 }
 
-bool Texture::saveToFile(const char * fileName)
+bool Texture::saveToFile(const char * fileName) const
 {
-  std::string fileNameString = fileName;
-  unsigned int dotIndex = fileNameString.find_last_of('.');
+  const std::string fileNameString = fileName;
+  const size_t dotIndex = fileNameString.find_last_of('.');
 
   if (dotIndex != std::string::npos)
   {
-    int extLen = fileNameString.length() - dotIndex;
-    std::string fileExt = fileNameString.substr(dotIndex, extLen);
+    const size_t extLen = fileNameString.length() - dotIndex;
+    const std::string fileExt = fileNameString.substr(dotIndex, extLen);
 
     if (fileExt == ".tga")
       return saveToTGAFile(fileName);
@@ -228,23 +212,23 @@ Color Texture::getTexelColor(const float u, const float v) const
   else if (colorBuf.empty())
       return ((int(u * 50) % 2) ^ (int(v * 50) % 2)) ? Color(0.5f, 0.5f, 0.5f) : Color(0.75f, 0.75f, 0.75f);
 
-  float fx = clamp(u, 0.0f, 1.0f - FLT_EPSILON) * width;
-  float fy = clamp(v, 0.0f, 1.0f - FLT_EPSILON) * height;
-  int x = int(fx);
-  int y = int(fy);
+  const float fx = clamp(u, 0.0f, 1.0f - FLT_EPSILON) * width;
+  const float fy = clamp(v, 0.0f, 1.0f - FLT_EPSILON) * height;
+  const int x = int(fx);
+  const int y = int(fy);
 
   // bilinear filtering
   if (x < width - 1 && y < height - 1)
   {
-    Color color00 = getTexelColor(x, y);
-    Color color01 = getTexelColor(x, y + 1);
-    Color color10 = getTexelColor(x + 1, y);
-    Color color11 = getTexelColor(x + 1, y + 1);
+    const Color color00 = getTexelColor(x, y);
+    const Color color01 = getTexelColor(x, y + 1);
+    const Color color10 = getTexelColor(x + 1, y);
+    const Color color11 = getTexelColor(x + 1, y + 1);
 
-    float uFrac = fx - floor(fx);
-    float vFrac = fy - floor(fy);
-    float uOpFrac = 1 - uFrac;
-    float vOpFrac = 1 - vFrac;
+    const float uFrac = fx - floor(fx);
+    const float vFrac = fy - floor(fy);
+    const float uOpFrac = 1 - uFrac;
+    const float vOpFrac = 1 - vFrac;
 
     return (color00 * uOpFrac + color10 * uFrac) * vOpFrac + (color01 * uOpFrac + color11 * uFrac) * vFrac;
   }

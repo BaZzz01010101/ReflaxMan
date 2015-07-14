@@ -11,9 +11,9 @@ private:
 
 public:
   Plane();
+  Plane(const Vector3 & pos, const Vector3 & norm, const Material & material);
   Plane(const Plane & plane);
   Plane & operator =(const Plane & plane);
-  Plane(const Vector3 & pos, const Vector3 & norm, const Material & material);
   ~Plane();
 
   bool trace(const Vector3 & origin, const Vector3 & ray, Vector3 * const out_drop, Vector3 * const out_norm, 

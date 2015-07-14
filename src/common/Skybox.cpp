@@ -38,6 +38,7 @@ bool Skybox::loadTexture(const char* fileName)
 
 Color Skybox::getTexelColor(const Vector3 & ray) const
 {
+  // uv coords of skybox texture cube sides centers
   const float uLeft = 1.0f / 8.0f;
   const float vLeft = 3.0f / 6.0f;
   const float uFront = 3.0f / 8.0f;
@@ -51,13 +52,13 @@ Color Skybox::getTexelColor(const Vector3 & ray) const
   const float uBottom = 3.0f / 8.0f;
   const float vBottom = 1.0f / 6.0f;
 
-  Vector3 nray = normalize(ray);
-  float x = nray.x;
-  float y = nray.y;
-  float z = nray.z;
-  float ax = fabs(x) + VERY_SMALL_NUMBER;
-  float ay = fabs(y) + VERY_SMALL_NUMBER;
-  float az = fabs(z) + VERY_SMALL_NUMBER;
+  const Vector3 nray = normalize(ray);
+  const float x = nray.x;
+  const float y = nray.y;
+  const float z = nray.z;
+  const float ax = fabs(x) + VERY_SMALL_NUMBER;
+  const float ay = fabs(y) + VERY_SMALL_NUMBER;
+  const float az = fabs(z) + VERY_SMALL_NUMBER;
   float u = 0;
   float v = 0;
   

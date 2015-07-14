@@ -6,6 +6,13 @@ Vector3::Vector3()
 {
 }
 
+Vector3::Vector3(const float x, const float y, const float z)
+{
+  this->x = x;
+  this->y = y;
+  this->z = z;
+}
+
 Vector3::Vector3(const Vector3 & v)
 {
   x = v.x;
@@ -20,13 +27,6 @@ Vector3 & Vector3::operator = (const Vector3 & v)
   z = v.z;
 
   return *this;
-}
-
-Vector3::Vector3(const float x, const float y, const float z)
-{
-  this->x = x;
-  this->y = y;
-  this->z = z;
 }
 
 Vector3::~Vector3()
@@ -45,7 +45,7 @@ float Vector3::sqLength() const
 
 void Vector3::normalize()
 {
-  float l = length();
+  const float l = length();
   assert(l > VERY_SMALL_NUMBER);
 
   if (l > VERY_SMALL_NUMBER)
@@ -54,7 +54,7 @@ void Vector3::normalize()
 
 Vector3 Vector3::normalized() const
 {
-  float l = length();
+  const float l = length();
   assert(l > VERY_SMALL_NUMBER);
 
   if (l > VERY_SMALL_NUMBER)
@@ -167,7 +167,7 @@ Vector3 Vector3::operator - () const
 
 Vector3 Vector3::reflect(const Vector3 & norm) const
 {
-  float a = norm * norm;
+  const float a = norm * norm;
   assert(a > VERY_SMALL_NUMBER);
 
   return 2 * (*this - (*this * norm / a) * norm) - *this;

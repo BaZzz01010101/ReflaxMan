@@ -11,19 +11,16 @@ private:
 
 public:
   Texture();
-  Texture(const Texture & texture);
   Texture(const int width, const int height);
   Texture(const char* filename);
   ~Texture();
 
-  Texture & operator = (const Texture & texture);
-
   bool loadFromFile(const char* fileName);
-  bool saveToFile(const char* fileName);
+  bool saveToFile(const char* fileName) const;
 
   bool loadFromTGAFile(const char* fileName);
-  bool saveToTGAFile(const char* fileName);
-  bool saveToBMPFile(const char* fileName);
+  bool saveToTGAFile(const char* fileName) const;
+  bool saveToBMPFile(const char* fileName) const;
 
   ARGB * getColorBuffer() const;
   Color getTexelColor(const int x, const int y) const;

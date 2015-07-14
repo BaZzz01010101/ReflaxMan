@@ -184,6 +184,7 @@
     <ClInclude Include="..\airly\Triangle.h" />
     <ClInclude Include="..\airly\Vector3.h" />
     <ClInclude Include="..\airly\Vertex.h" />
+    <ClInclude Include="defaults.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>

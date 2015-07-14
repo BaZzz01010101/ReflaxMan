@@ -14,24 +14,6 @@ Matrix33::Matrix33(const Vector3 & u, const Vector3 & v, const Vector3 & n)
   _31 = u.z; _32 = v.z; _33 = n.z;
 }
 
-Matrix33::Matrix33(const Matrix33 & _m)
-{
-  //for (int i = 0; i < 3; i++)
-  //for (int j = 0; j < 3; j++)
-  //  m[i][j] = _m.m[i][j];
-  memcpy(m, _m.m, sizeof(m));
-}
-
-Matrix33 & Matrix33::operator = (const Matrix33 & _m)
-{
-  //for (int i = 0; i < 3; i++)
-  //for (int j = 0; j < 3; j++)
-  //  m[i][j] = _m.m[i][j];
-  memcpy(m, _m.m, sizeof(m));
-
-  return *this;
-}
-
 Matrix33::Matrix33(
   float f11, float f12, float f13,
   float f21, float f22, float f23,
@@ -40,6 +22,24 @@ Matrix33::Matrix33(
   _11 = f11; _12 = f12; _13 = f13;
   _21 = f21; _22 = f22; _23 = f23;
   _31 = f31; _32 = f32; _33 = f33;
+}
+
+Matrix33::Matrix33(const Matrix33 & mat)
+{
+  //for (int i = 0; i < 3; i++)
+  //for (int j = 0; j < 3; j++)
+  //  m[i][j] = mat.m[i][j];
+  memcpy(m, mat.m, sizeof(m));
+}
+
+Matrix33 & Matrix33::operator = (const Matrix33 & mat)
+{
+  //for (int i = 0; i < 3; i++)
+  //for (int j = 0; j < 3; j++)
+  //  m[i][j] = mat.m[i][j];
+  memcpy(m, mat.m, sizeof(m));
+
+  return *this;
 }
 
 Matrix33::~Matrix33()
@@ -57,7 +57,7 @@ float Matrix33::det() const
 
 void Matrix33::invert()
 {
-  float d = det();
+  const float d = det();
   assert(fabs(d) > VERY_SMALL_NUMBER);
 
 
@@ -80,7 +80,7 @@ void Matrix33::invert()
 
 Matrix33 Matrix33::inverted() const
 {
-  float d = det();
+  const float d = det();
   assert(fabs(d) > VERY_SMALL_NUMBER);
 
   if (fabs(d) > VERY_SMALL_NUMBER)
@@ -103,7 +103,7 @@ void Matrix33::transpose()
   for (int i = 0; i < 2; i++)
   for (int j = i + 1; j < 3; j++)
   {
-    float f = m[i][j];
+    const float f = m[i][j];
     m[i][j] = m[j][i];
     m[j][i] = f;
   }
@@ -134,20 +134,20 @@ void Matrix33::setCol(const int i, const Vector3 & v)
   m[2][i] = v.z;
 }
 
-Matrix33 & Matrix33::operator += (const Matrix33 & _m)
+Matrix33 & Matrix33::operator += (const Matrix33 & mat)
 {
   for (int i = 0; i < 3; i++)
   for (int j = 0; j < 3; j++)
-    m[i][j] += _m.m[i][j];
+    m[i][j] += mat.m[i][j];
 
   return *this;
 }
 
-Matrix33 & Matrix33::operator -= (const Matrix33 & _m)
+Matrix33 & Matrix33::operator -= (const Matrix33 & mat)
 {
   for (int i = 0; i < 3; i++)
   for (int j = 0; j < 3; j++)
-    m[i][j] -= _m.m[i][j];
+    m[i][j] -= mat.m[i][j];
 
   return *this;
 }
@@ -167,7 +167,7 @@ Matrix33 & Matrix33::operator /= (const float f)
 
   if (fabs(f) > VERY_SMALL_NUMBER)
   {
-    float inv = 1 / f;
+    const float inv = 1 / f;
 
     for (int i = 0; i < 3; i++)
     for (int j = 0; j < 3; j++)
@@ -176,24 +176,24 @@ Matrix33 & Matrix33::operator /= (const float f)
   return *this;
 }
 
-Matrix33 Matrix33::operator + (const Matrix33 & _m) const
+Matrix33 Matrix33::operator + (const Matrix33 & mat) const
 {
   Matrix33 result;
 
   for (int i = 0; i < 3; i++)
   for (int j = 0; j < 3; j++)
-    result.m[i][j] = m[i][j] + _m.m[i][j];
+    result.m[i][j] = m[i][j] + mat.m[i][j];
 
   return result;
 }
 
-Matrix33 Matrix33::operator - (const Matrix33 & _m) const
+Matrix33 Matrix33::operator - (const Matrix33 & mat) const
 {
   Matrix33 result;
 
   for (int i = 0; i < 3; i++)
   for (int j = 0; j < 3; j++)
-    result.m[i][j] = m[i][j] - _m.m[i][j];
+    result.m[i][j] = m[i][j] - mat.m[i][j];
 
   return result;
 }
@@ -209,15 +209,15 @@ Matrix33 Matrix33::operator * (const float f) const
   return result;
 }
 
-Matrix33 operator * (const float f, const Matrix33 & _m)
+Matrix33 operator * (const float f, const Matrix33 & mat)
 {
-  return _m * f;
+  return mat * f;
 }
 
-Matrix33 Matrix33::operator * (const Matrix33 & _m) const
+Matrix33 Matrix33::operator * (const Matrix33 & mat) const
 {
   const float(&a)[3][3] = m;
-  const float(&b)[3][3] = _m.m;
+  const float(&b)[3][3] = mat.m;
   Matrix33 ab;
 
   for (int i = 0; i < 3; i++)
@@ -240,24 +240,24 @@ Matrix33 Matrix33::operator / (const float f) const
 
   if (fabs(f) > VERY_SMALL_NUMBER)
   {
-    float inv = 1 / f;
+    const float inv = 1 / f;
     return *this * inv;
   }
   return *this;
 }
 
-bool Matrix33::operator == (const Matrix33 & _m) const
+bool Matrix33::operator == (const Matrix33 & mat) const
 {
   return
-    //_11 == _m._11 && _12 == _m._12 && _13 == _m._13 &&
-    //_21 == _m._21 && _22 == _m._22 && _23 == _m._23 &&
-    //_31 == _m._31 && _32 == _m._32 && _33 == _m._33;
-  !memcmp(m, _m.m, sizeof(m));
+    //_11 == mat._11 && _12 == mat._12 && _13 == mat._13 &&
+    //_21 == mat._21 && _22 == mat._22 && _23 == mat._23 &&
+    //_31 == mat._31 && _32 == mat._32 && _33 == mat._33;
+  !memcmp(m, mat.m, sizeof(m));
 }
 
-bool Matrix33::operator != (const Matrix33 & _m) const
+bool Matrix33::operator != (const Matrix33 & mat) const
 {
-  return !operator == (_m);
+  return !operator == (mat);
 }
 
 Matrix33 Matrix33::operator - () const
@@ -267,16 +267,16 @@ Matrix33 Matrix33::operator - () const
                   -_31, -_32, -_33);
 }
 
-Matrix33 Matrix33::makeRotation(float yaw, float pitch)
+Matrix33 Matrix33::makeRotation(const float yaw, const float pitch)
 {
-  float yawSin = sin(yaw);
-  float yawCos = cos(yaw);
-  float pitchSin = sin(pitch);
-  float pitchCos = cos(pitch);
+  const float yawSin = sin(yaw);
+  const float yawCos = cos(yaw);
+  const float pitchSin = sin(pitch);
+  const float pitchCos = cos(pitch);
 
-  Vector3 front(yawSin * pitchCos, pitchSin, yawCos * pitchCos);
-  Vector3 right = Vector3(0.0f, 1.0f, 0.0f) % front;
-  Vector3 up = front % right;
+  const Vector3 front(yawSin * pitchCos, pitchSin, yawCos * pitchCos);
+  const Vector3 right = Vector3(0.0f, 1.0f, 0.0f) % front;
+  const Vector3 up = front % right;
 
   return Matrix33(right.normalized(), up.normalized(), front.normalized());
 }

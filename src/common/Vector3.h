@@ -10,9 +10,9 @@ public:
   float z;
 
   Vector3();
+  Vector3(const float x, const float y, const float z);
   Vector3(const Vector3 & v);
   Vector3 & operator = (const Vector3 & v);
-  Vector3(const float x, const float y, const float z);
   ~Vector3();
 
   float length() const;

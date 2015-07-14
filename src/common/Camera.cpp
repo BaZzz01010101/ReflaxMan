@@ -6,12 +6,12 @@ Camera::Camera()
   yaw = 0;
   pitch = 0;
 
-  turnAccel = defTurnAccel;
-  turnDecel = defTurnDecel;
-  shiftAccel = defShiftAccel;
-  shiftDecel = defShiftDecel;
-  maxTurnSpeed = defMaxTurnSpeed;
-  maxShiftSpeed = defMaxShiftSpeed;
+  turnAccel = Default::turnAccel;
+  turnDecel = Default::turnDecel;
+  shiftAccel = Default::shiftAccel;
+  shiftDecel = Default::shiftDecel;
+  maxTurnSpeed = Default::maxTurnSpeed;
+  maxShiftSpeed = Default::maxShiftSpeed;
 
   turnRLSpeed = 0;
   turnUDSpeed = 0;
@@ -36,16 +36,16 @@ Camera::Camera(const Vector3 & eye, const Vector3 & at, const float fov)
 
   yaw = acos(ox.z);
   if (ox.x < 0)
-    yaw = 2 * M_PI - yaw;
+    yaw = 2.0f * float(M_PI) - yaw;
   yaw -= M_PI_2;
   pitch = asin(oz.y);
 
-  turnAccel = defTurnAccel;
-  turnDecel = defTurnDecel;
-  shiftAccel = defShiftAccel;
-  shiftDecel = defShiftDecel;
-  maxTurnSpeed = defMaxTurnSpeed;
-  maxShiftSpeed = defMaxShiftSpeed;
+  turnAccel = Default::turnAccel;
+  turnDecel = Default::turnDecel;
+  shiftAccel = Default::shiftAccel;
+  shiftDecel = Default::shiftDecel;
+  maxTurnSpeed = Default::maxTurnSpeed;
+  maxShiftSpeed = Default::maxShiftSpeed;
 
   turnRLSpeed = 0;
   turnUDSpeed = 0;
@@ -106,7 +106,7 @@ Camera::~Camera()
 {
 }
 
-void Camera::proceedControl(int controlFlags, int timePassedMs)
+void Camera::proceedControl(const int controlFlags, const int timePassedMs)
 {
   float timePassed = timePassedMs / 1000.0f;
 
@@ -233,14 +233,14 @@ void Camera::proceedControl(int controlFlags, int timePassedMs)
 
     float shiftSqLength = shift.sqLength();
 
-    if (shiftSqLength > defMaxShiftSpeed * defMaxShiftSpeed)
-      shift = shift * defMaxShiftSpeed / sqrtf(shiftSqLength);
+    if (shiftSqLength > Default::maxShiftSpeed * Default::maxShiftSpeed)
+      shift = shift * Default::maxShiftSpeed / sqrtf(shiftSqLength);
 
     eye += shift * timePassed;
   }
 }
 
-bool Camera::inMotion()
+bool Camera::inMotion() const
 {
   return fabs(turnRLSpeed) > FLT_EPSILON ||
          fabs(turnUDSpeed) > FLT_EPSILON ||

@@ -17,9 +17,9 @@ private:
 
 public:
   Triangle();
+  Triangle(const Vector3 & v1, const Vector3 & v2, const Vector3 & v3, const Material & material);
   Triangle(const Triangle & Triangle);
   Triangle & operator =(const Triangle & Triangle);
-  Triangle(const Vector3 & v1, const Vector3 & v2, const Vector3 & v3, const Material & material);
   ~Triangle();
 
   void setTexture(const Texture * texture, const float u1, const float v1, const float u2, const float v2, 

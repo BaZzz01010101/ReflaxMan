@@ -14,6 +14,4 @@
 #include <string>
 #include <cmath>
 
-
-
 // TODO: reference additional headers your program requires here

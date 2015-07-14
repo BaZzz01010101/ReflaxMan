@@ -6,7 +6,21 @@ Color::Color()
 {
 }
 
-Color::Color(const Color & c) 
+Color::Color(const ARGB & c)
+{
+  r = float(ARGB_RED(c)) / 255.0f;
+  g = float(ARGB_GREEN(c)) / 255.0f;
+  b = float(ARGB_BLUE(c)) / 255.0f;
+}
+
+Color::Color(const float r, const float g, const float b)
+{
+  this->r = r;
+  this->g = g;
+  this->b = b;
+}
+
+Color::Color(const Color & c)
 {
   r = c.r;
   g = c.g;
@@ -19,20 +33,6 @@ Color & Color::operator = (const Color & c)
   g = c.g;
   b = c.b;
   return *this;
-}
-
-Color::Color(const ARGB & c)
-{
-  r = float(ARGB_RED(c)) / 255.0f;
-  g = float(ARGB_GREEN(c)) / 255.0f;
-  b = float(ARGB_BLUE(c)) / 255.0f;
-}
-
-Color::Color(const float r, const float g, const float b) 
-{
-  this->r = r;
-  this->g = g;
-  this->b = b;
 }
 
 Color::~Color()

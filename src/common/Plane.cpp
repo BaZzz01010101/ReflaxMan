@@ -7,7 +7,14 @@ Plane::Plane()
 {
 }
 
-Plane::Plane(const Plane & plane) 
+Plane::Plane(const Vector3 & pos, const Vector3 & norm, const Material & material)
+{
+  this->material = material;
+  this->pos = pos;
+  this->norm = norm;
+}
+
+Plane::Plane(const Plane & plane)
 {
   material = plane.material;
   pos = plane.pos;
@@ -23,13 +30,6 @@ Plane & Plane::operator =(const Plane & plane)
   return *this;
 }
 
-Plane::Plane(const Vector3 & pos, const Vector3 & norm, const Material & material) 
-{
-  this->material = material;
-  this->pos = pos;
-  this->norm = norm;
-}
-
 Plane::~Plane()
 {
 }
@@ -37,17 +37,17 @@ Plane::~Plane()
 bool Plane::trace(const Vector3 & origin, const Vector3 & ray, Vector3 * const out_drop, Vector3 * const out_norm, 
   Vector3 * const out_reflected_ray, float * const out_distance, Material * const out_drop_material) const
 {
-  Vector3 vop = pos - origin;
-  float a = norm * ray;
+  const Vector3 vop = pos - origin;
+  const float a = norm * ray;
 
   if (fabs(a) > VERY_SMALL_NUMBER)
   {
-    float t = (norm * vop) / a;
+    const float t = (norm * vop) / a;
 
     if (t > VERY_SMALL_NUMBER) 
     {
-      Vector3 fullRay = ray * t;
-      float sqDistance = fullRay.sqLength();
+      const Vector3 fullRay = ray * t;
+      const float sqDistance = fullRay.sqLength();
 
       if (sqDistance > DELTA * DELTA)
       {

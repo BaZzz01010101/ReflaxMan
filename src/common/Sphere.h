@@ -13,9 +13,9 @@ private:
 
 public:
   Sphere();
+  Sphere(const Vector3 & center, const float radius, const Material & material);
   Sphere(const Sphere & sphere);
   Sphere & operator =(const Sphere & sphere);
-  Sphere(const Vector3 & center, const float radius, const Material & material);
   ~Sphere();
 
   bool trace(const Vector3 & origin, const Vector3 & ray, Vector3 * const out_drop, Vector3 * const out_norm, 

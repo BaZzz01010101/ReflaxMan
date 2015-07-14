@@ -8,6 +8,14 @@ Sphere::Sphere()
 
 }
 
+Sphere::Sphere(const Vector3 & center, const float radius, const Material & material) 
+{
+  this->center = center;
+  this->radius = radius;
+  this->sqRadius = radius * radius;
+  this->material = material;
+}
+
 Sphere::Sphere(const Sphere & sphere) 
 {
   center = sphere.center;
@@ -26,14 +34,6 @@ Sphere & Sphere::operator =(const Sphere & sphere)
   return *this;
 }
 
-Sphere::Sphere(const Vector3 & center, const float radius, const Material & material) 
-{
-  this->center = center;
-  this->radius = radius;
-  this->sqRadius = radius * radius;
-  this->material = material;
-}
-
 Sphere::~Sphere()
 {
 }
@@ -41,27 +41,27 @@ Sphere::~Sphere()
 bool Sphere::trace(const Vector3 & origin, const Vector3 & ray, Vector3 * const out_drop, Vector3 * const out_norm, 
   Vector3 * const out_reflected_ray, float * const out_distance, Material * const out_drop_material) const
 {
-// Trace intersections only from outside of sphere
+// tracing intersections only from outside of sphere
 
-  Vector3 vco = origin - center;
-  float a = ray.sqLength();
-  float b = 2.0f * ray * vco;
-  float c = vco.sqLength() - sqRadius;
-  float d = b * b - 4.0f * a * c;
+  const Vector3 vco = origin - center;
+  const float a = ray.sqLength();
+  const float b = 2.0f * ray * vco;
+  const float c = vco.sqLength() - sqRadius;
+  const float d = b * b - 4.0f * a * c;
 
   if (d >= 0.0f && a > VERY_SMALL_NUMBER) 
   {
-    float t = (-b - sqrtf(d)) / (2.0f * a);
+    const float t = (-b - sqrtf(d)) / (2.0f * a);
 
     if (t > VERY_SMALL_NUMBER)
     {
-      Vector3 fullRay = ray * t;
-      float distance = fullRay.length();
+      const Vector3 fullRay = ray * t;
+      const float distance = fullRay.length();
 
       if (distance > DELTA)
       {
-        Vector3 drop = origin + fullRay;
-        Vector3 norm = drop - center;
+        const Vector3 drop = origin + fullRay;
+        const Vector3 norm = drop - center;
 
         if (out_distance)
           *out_distance = distance;

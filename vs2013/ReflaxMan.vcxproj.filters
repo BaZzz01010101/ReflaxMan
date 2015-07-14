@@ -87,6 +87,9 @@
     <ClInclude Include="..\airly\Render.h">
       <Filter>Header Files\Airly</Filter>
     </ClInclude>
+    <ClInclude Include="defaults.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

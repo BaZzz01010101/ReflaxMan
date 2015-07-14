@@ -27,10 +27,10 @@ public:
   float b;
 
   Color();
-  Color(const Color & c);
-  Color & operator =(const Color & c);
   Color(const ARGB & bgra);
   Color(const float r, const float g, const float b);
+  Color(const Color & c);
+  Color & operator =(const Color & c);
   ~Color();
 
   Color & operator *=(const float & f);

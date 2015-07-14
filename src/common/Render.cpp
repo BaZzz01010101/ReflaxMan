@@ -4,9 +4,9 @@
 
 Render::Render(const char * exePath)
 {
-  scanLinesRendered = 0;
-  renderInProgress = false;
   additiveCounter = 0;
+  scanLinesRendered = 0;
+  inProgress = false;
 
   loadScene(exePath);
 }
@@ -18,8 +18,8 @@ Render::~Render()
 
 void Render::loadScene(const char * exePath)
 {
-  std::string skyboxTextureFileName = std::string(exePath) + "./textures/skybox.tga";
-  std::string planeTextureFileName = std::string(exePath) + "./textures/himiya.tga";
+  const std::string skyboxTextureFileName = std::string(exePath) + "./textures/skybox.tga";
+  const std::string planeTextureFileName = std::string(exePath) + "./textures/himiya.tga";
 
   camera = Camera(Vector3(7.427f, 3.494f, -3.773f), Vector3(6.5981f, 3.127f, -3.352f), 1.05f);
 
@@ -31,15 +31,15 @@ void Render::loadScene(const char * exePath)
   //scene.addLight(Vector3(11.8e9f, 4.26e9f, 3.08e9f), 6.96e9f, Color(1.0f, 1.0f, 0.95f), 0.85f);
 
   scene.addSphere(Vector3(-1.25f, 1.5f, -0.25f), 1.5f, Material(Material::mtMetal, Color(1.0f, 1.0f, 1.0f), 1.0f, 0.0f));
-  scene.addSphere(Vector3(0.15f, 1.0f, 1.75f), 1.0f, Material(Material::mtMetal, Color(1.0f, 1.0f, 1.0f), 0.9f, 0.0f));
+  scene.addSphere(Vector3(0.15f, 1.0f, 1.75f), 1.0f, Material(Material::mtMetal, Color(1.0f, 1.0f, 1.0f), 0.95f, 0.0f));
 
   scene.addSphere(Vector3(-3.0f, 0.6f, -3.0f), 0.6f, Material(Material::mtDielectric, Color(1.0f, 1.0f, 1.0f), 0.0f, 0.0f));
-  scene.addSphere(Vector3(-0.5f, 0.5f, -2.5f), 0.5f, Material(Material::mtDielectric, Color(0.5f, 1.0f, 0.15f), 0.8f, 0.0f));
-  scene.addSphere(Vector3(1.0f, 0.4f, -1.5f), 0.4f, Material(Material::mtDielectric, Color(0.0f, 0.5f, 1.0f), 0.99f, 0.0f));
+  scene.addSphere(Vector3(-0.5f, 0.5f, -2.5f), 0.5f, Material(Material::mtDielectric, Color(0.5f, 1.0f, 0.15f), 0.75f, 0.0f));
+  scene.addSphere(Vector3(1.0f, 0.4f, -1.5f), 0.4f, Material(Material::mtDielectric, Color(0.0f, 0.5f, 1.0f), 1.0f, 0.0f));
 
-  scene.addSphere(Vector3(1.8f, 0.4f, 0.1f), 0.4f, Material(Material::mtMetal, Color(1.0f, 0.65f, 0.45f), 0.99f, 0.0f));
-  scene.addSphere(Vector3(1.7f, 0.5f, 1.9f), 0.5f, Material(Material::mtMetal, Color(1.0f, 0.90f, 0.60f), 0.8f, 0.0f));
-  scene.addSphere(Vector3(0.6f, 0.6f, 4.2f), 0.6f, Material(Material::mtMetal, Color(0.9f, 0.9f, 0.9f), 0.1f, 0.0f));
+  scene.addSphere(Vector3(1.8f, 0.4f, 0.1f), 0.4f, Material(Material::mtMetal, Color(1.0f, 0.65f, 0.45f), 1.0f, 0.0f));
+  scene.addSphere(Vector3(1.7f, 0.5f, 1.9f), 0.5f, Material(Material::mtMetal, Color(1.0f, 0.90f, 0.60f), 0.75f, 0.0f));
+  scene.addSphere(Vector3(0.6f, 0.6f, 4.2f), 0.6f, Material(Material::mtMetal, Color(0.9f, 0.9f, 0.9f), 0.0f, 0.0f));
 
   Texture * planeTexture = scene.addTexture(planeTextureFileName.c_str());
   Triangle * tr1 = scene.addTriangle(Vector3(-14.0f, 0.0f, -10.0f), Vector3(-14.0f, 0.0f, 10.0f), Vector3(14.0f, 0.0f, -10.0f), Material(Material::mtDielectric, Color(1.0f, 1.0f, 1.0f), 0.95f, 0.0f));
@@ -52,39 +52,61 @@ void Render::setImageSize(int width, int height)
 {
   assert(width > 0);
   assert(height > 0);
+
   image.resize(width * height);
+  for (std::vector<Color>::iterator it = image.begin(); it != image.end(); ++it)
+    *it = Color(0, 0, 0);
   imageWidth = width;
   imageHeight = height;
-  scanLinesRendered = 0;
-  renderInProgress = false;
   additiveCounter = 0;
+  scanLinesRendered = 0;
+  inProgress = false;
 }
 
-void Render::copyImage(Texture & texture)
+void Render::copyImage(Texture & texture) const
 {
+  assert(imageWidth > 0);
+  assert(imageHeight > 0);
+  assert(texture.getWidth() > 0);
+  assert(texture.getHeight() > 0);
+  assert(imageWidth == texture.getWidth());
+  assert(imageHeight == texture.getHeight());
+
   if (imageWidth == texture.getWidth() && imageHeight == texture.getHeight())
   {
-    ARGB * pArgb = texture.getColorBuffer();
-    for (int i = 0, cnt = imageWidth * imageHeight; i < cnt; i++)
-      *pArgb = image[i].argb();
+    const Color * imagePixel = &image.front();
+    ARGB * texPixel = texture.getColorBuffer();
+    const ARGB * endTexPixel = texPixel + imageWidth * imageHeight;
+    while (texPixel < endTexPixel)
+      *texPixel++ = (imagePixel++)->argb();
   }
-  else texture.clear(0xFF00FF);
+  else 
+    texture.clear(0);
 }
 
-Color Render::imagePixel(int x, int y) 
+Color Render::imagePixel(int x, int y) const
 { 
-  return additiveCounter > 1 ? 
-         image[x + y * imageWidth] / float(additiveCounter) : 
-         image[x + y * imageWidth]; 
+  assert(x >= 0);
+  assert(y >= 0);
+
+  if (x >= 0 && y >= 0)
+    return additiveCounter > 1 ?
+    image[x + y * imageWidth] / float(additiveCounter) :
+    image[x + y * imageWidth];
+  else
+    return Color(0, 0, 0);
 }
 
 void Render::renderBegin(int reflectNum, int sampleNum, bool additive)
 {
+  assert(reflectNum > 0);
+  assert(sampleNum != 0);
+
   renderReflectNum = reflectNum;
   renderSampleNum = sampleNum;
   renderAdditive = additive;
   scanLinesRendered = 0;
-  renderInProgress = true;
+  inProgress = true;
   renderCameraView = camera.view;
   renderCameraEye = camera.eye;
 
@@ -94,28 +116,25 @@ void Render::renderBegin(int reflectNum, int sampleNum, bool additive)
     additiveCounter = 0;
 }
 
-void Render::renderRestart()
-{
-  scanLinesRendered = 0;
-  renderInProgress = true;
-}
-
 int Render::renderNext(int scanLines)
 {
-  if (!renderInProgress)
+  assert(inProgress);
+
+  if (!inProgress)
     return -1;
 
-  int scanLinesLeft = imageHeight - scanLinesRendered;
-  scanLines = min(scanLines, scanLinesLeft);
+  const Vector3 origin = renderCameraEye;
+  const float sqRenderSampleNum = float(renderSampleNum * renderSampleNum);
+  const float rz = float(imageWidth) / 2.0f / tanf(camera.fov / 2.0f);
+  const float imageWidthHalf = imageWidth / 2.0f;
+  const float imageHeightHalf = imageHeight / 2.0f;
+  const int endScanLine = scanLinesRendered + min(scanLines, imageHeight - scanLinesRendered);
 
-  for (int y = scanLinesRendered + scanLines - 1; y >= scanLinesRendered; y--)
-  for (int x = imageWidth - 1; x >= 0; x--)
+  for (int y = scanLinesRendered; y < endScanLine; y++)
+  for (int x = 0; x < imageWidth; x++)
   {
-    const float rx = float(x) - imageWidth / 2.0f;
-    const float ry = float(y) - imageHeight / 2.0f;
-    const float rz = float(imageWidth) / 2.0f / tanf(camera.fov / 2.0f);
-
-    Vector3 origin = renderCameraEye;
+    const float rx = float(x) - imageWidthHalf;
+    const float ry = float(y) - imageHeightHalf;
     Vector3 ray(rx, ry, rz);
 
     if (renderSampleNum < 0)
@@ -123,47 +142,32 @@ int Render::renderNext(int scanLines)
       if (!(x % renderSampleNum || y % renderSampleNum))
       {
         ray = renderCameraView * ray;
-        
-        Color col = scene.trace(origin, ray, renderReflectNum);
-        for (int qx = min(imageWidth, x + abs(renderSampleNum)) - 1; qx >= x; qx--)
-        for (int qy = min(imageHeight, y + abs(renderSampleNum)) - 1; qy >= y; qy--)
-          image[qx + qy * imageWidth] = col;
+        const Color tracedColor = scene.trace(origin, ray, renderReflectNum);
+        const int endQx = min(imageWidth, x + abs(renderSampleNum));
+        const int endQy = min(imageHeight, y + abs(renderSampleNum));
+
+        for (int qx = x; qx < endQx; qx++)
+        for (int qy = y; qy < endQy; qy++)
+          image[qx + qy * imageWidth] = tracedColor;
       }
     }
-    else
+    else if (renderSampleNum > 0)
     {
       Color finColor;
+      const float rndx = renderAdditive ? float(fastrand()) / FAST_RAND_MAX : 0;
+      const float rndy = renderAdditive ? float(fastrand()) / FAST_RAND_MAX : 0;
+      //const Vector3 randVec = renderAdditive ? Vector3::randomInsideSphere(0.5f / renderSampleNum) : Vector3(0, 0, 0);
+      finColor = Color(0.0f, 0.0f, 0.0f);
 
-      if (renderSampleNum > 1)
+      for (int ssx = 0; ssx < renderSampleNum; ssx++)
+      for (int ssy = 0; ssy < renderSampleNum; ssy++)
       {
-        Vector3 randVec;
-        finColor = Color(0.0f, 0.0f, 0.0f);
-
-        if (renderAdditive)
-          randVec = Vector3::randomInsideSphere(0.5f / renderSampleNum);
-
-        for (int ssx = 0; ssx < renderSampleNum; ssx++)
-        for (int ssy = 0; ssy < renderSampleNum; ssy++)
-        {
-          Vector3 ray(rx + float(ssx) / renderSampleNum, ry + float(ssy) / renderSampleNum, rz);
-
-          if (renderAdditive)
-            ray += randVec;
-
-          ray = renderCameraView * ray;
-          finColor += scene.trace(origin, ray, renderReflectNum);
-        }
-
-        finColor /= float(renderSampleNum * renderSampleNum);
-      }
-      else
-      {
-        if (renderAdditive)
-          ray += Vector3::randomInsideSphere(0.5f);
-
+        Vector3 ray = Vector3(rx + float(ssx) / renderSampleNum + rndx, ry + float(ssy) / renderSampleNum + rndy, rz);
         ray = renderCameraView * ray;
-        finColor = scene.trace(origin, ray, renderReflectNum);
+        finColor += scene.trace(origin, ray, renderReflectNum);
       }
+
+      finColor /= sqRenderSampleNum;
 
       if (additiveCounter > 1)
         image[x + y * imageWidth] += finColor;
@@ -174,9 +178,9 @@ int Render::renderNext(int scanLines)
   }
 
   scanLinesRendered += scanLines;
-  renderInProgress = (scanLinesLeft != 0);
+  inProgress = (scanLinesRendered < imageHeight);
 
-  return scanLinesLeft;
+  return imageHeight - scanLinesRendered;
 }
 
 void Render::renderAll(int reflectNum, int sampleNum, bool additive)

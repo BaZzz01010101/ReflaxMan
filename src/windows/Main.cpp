@@ -1,9 +1,12 @@
 #define NOMINMAX
 #include <windows.h>
 #include "stdafx.h"
+
 #include "..\airly\airly.h"
 #include "..\airly\Render.h"
+#include "defaults.h"
 
+HWND hWnd = NULL;
 Render * render = NULL;
 HFONT font = NULL;
 HDC memDC = NULL;
@@ -15,7 +18,7 @@ bool imageReady = false;
 float frameChunkTime = 0.0f;
 float frameTime = 0.0f;
 char exeFullPath[MAX_PATH];
-bool scrnshotRequested = false;
+bool scrnshotSaving = false;
 float scrnshotProgress = -1;
 DWORD scrnshotStartTicks = 0;
 std::string scrnshotFileName;
@@ -26,7 +29,7 @@ bool initPerfSuccess = (QueryPerformanceFrequency(&perfFreq) && perfFreq.QuadPar
 bool quitMessage = false;
 int controlFlags = 0;
 
-void print(HDC hdc, int x, int y, const char* format, ...)
+void print(const HDC hdc, const int x, const int y, const char* format, ...)
 {
   const int buf_len = 256;
   char buffer[buf_len];
@@ -37,35 +40,35 @@ void print(HDC hdc, int x, int y, const char* format, ...)
   va_end(args);
 
   SetTextColor(hdc, 0xAAAAAA);
-  TextOutA(hdc, x - 1, y - 1, buffer, strlen(buffer));
-  TextOutA(hdc, x + 1, y - 1, buffer, strlen(buffer));
-  TextOutA(hdc, x - 1, y + 1, buffer, strlen(buffer));
-  TextOutA(hdc, x + 1, y + 1, buffer, strlen(buffer));
-  TextOutA(hdc, x, y - 1, buffer, strlen(buffer));
-  TextOutA(hdc, x + 1, y, buffer, strlen(buffer));
-  TextOutA(hdc, x, y + 1, buffer, strlen(buffer));
-  TextOutA(hdc, x + 1, y, buffer, strlen(buffer));
+  TextOutA(hdc, x - 1, y - 1, buffer, (int)strlen(buffer));
+  TextOutA(hdc, x + 1, y - 1, buffer, (int)strlen(buffer));
+  TextOutA(hdc, x - 1, y + 1, buffer, (int)strlen(buffer));
+  TextOutA(hdc, x + 1, y + 1, buffer, (int)strlen(buffer));
+  TextOutA(hdc, x, y - 1, buffer, (int)strlen(buffer));
+  TextOutA(hdc, x + 1, y, buffer, (int)strlen(buffer));
+  TextOutA(hdc, x, y + 1, buffer, (int)strlen(buffer));
+  TextOutA(hdc, x + 1, y, buffer, (int)strlen(buffer));
   SetTextColor(hdc, 0);
-  TextOutA(hdc, x, y, buffer, strlen(buffer));
+  TextOutA(hdc, x, y, buffer, (int)strlen(buffer));
 }
 
 void ProceedControl()
 {
   static DWORD prevTicks = GetTickCount();
-  DWORD curTicks = GetTickCount();
+  const DWORD curTicks = GetTickCount();
   render->camera.proceedControl(controlFlags, int(curTicks - prevTicks));
   prevTicks = curTicks;
 }
 
-void DrawScreenshotStats(HDC hdc)
+void DrawScreenshotStats(const HDC hdc)
 {
   TEXTMETRICA tm;
   SelectObject(hdc, font);
   GetTextMetricsA(hdc, &tm);
   SetBkMode(hdc, TRANSPARENT);
   SetTextColor(hdc, 0);
-  int lineHeight = tm.tmHeight + 1;
-  int x = 3;
+  const int lineHeight = tm.tmHeight + 1;
+  const int x = 3;
   int y = 3;
 
   print(hdc, x, y, "Saving screenshot:");
@@ -73,43 +76,61 @@ void DrawScreenshotStats(HDC hdc)
   y += lineHeight;
   print(hdc, x, y, scrnshotFileName.c_str());
 
+  y += lineHeight;
+  print(hdc, x, y, "Resolution: %ix%i", Default::scrnshotWidth, Default::scrnshotHeight);
+
+  y += lineHeight;
+  print(hdc, x, y, "SSAA: %ix", Default::scrnshotSamples);
+
+  
+
   y += lineHeight * 2;
   print(hdc, x, y, "Progress: %.2f %%", scrnshotProgress);
 
-  DWORD ticksPassed = GetTickCount() - scrnshotStartTicks;
-  DWORD ticksLeft = DWORD(ticksPassed * 100 / scrnshotProgress) - ticksPassed;
+  if (scrnshotProgress > VERY_SMALL_NUMBER)
+  {
+    const DWORD ticksPassed = GetTickCount() - scrnshotStartTicks;
+    DWORD ticksLeft = DWORD(ticksPassed * 100 / scrnshotProgress) - ticksPassed;
 
-  int hr = ticksLeft / 3600000;
-  ticksLeft = ticksLeft % 3600000;
-  int min = ticksLeft / 60000;
-  ticksLeft = ticksLeft % 60000;
-  int sec = ticksLeft / 1000;
-  y += lineHeight;
-  print(hdc, x, y, "Estimated time left: %i h %02i m %02i s", hr, min, sec);
+    int hr = ticksLeft / 3600000;
+    ticksLeft = ticksLeft % 3600000;
+    int min = ticksLeft / 60000;
+    ticksLeft = ticksLeft % 60000;
+    int sec = ticksLeft / 1000;
+    y += lineHeight;
+    print(hdc, x, y, "Estimated time left: %i h %02i m %02i s", hr, min, sec);
+  }
 
   if (scrnshotCancelRequested)
   {
     y += lineHeight * 2;
     print(hdc, x, y, "Do you want to cancel ? ( Y / N ) ");
-
+  }
+  else
+  {
+    y += lineHeight * 2;
+    print(hdc, x, y, "Press ESC to cancel");
   }
 }
 
-void DrawSceneStats(HDC hdc)
+void DrawSceneStats(const HDC hdc)
 {
   TEXTMETRICA tm;
   SelectObject(hdc, font);
   GetTextMetricsA(hdc, &tm);
   SetBkMode(hdc, TRANSPARENT);
   SetTextColor(hdc, 0);
-  int lineHeight = tm.tmHeight + 1;
-  int x = 3;
+  const int lineHeight = tm.tmHeight + 1;
+  const int x = 3;
   int y = 3;
 
   if (frameTime < 10)
     print(hdc, x, y, "Frame time: %.0f ms", frameTime * 1000);
   else
     print(hdc, x, y, "Frame time: %.03f s", frameTime);
+
+  y += tm.tmHeight;
+  print(hdc, x, y, "Blended frames : %i", render->additiveCounter);
 
   y += tm.tmHeight * 2;
   print(hdc, x, y, "WSAD : moving");
@@ -123,31 +144,12 @@ void DrawSceneStats(HDC hdc)
   y += lineHeight;
   print(hdc, x, y, "Ctrl : descenting");
 
-  //y += tm.tmHeight * 2;
-  //print(hdc, x, y, "camera eye: [%.03f, %.03f, %.03f]", render->camera.eye.x, render->camera.eye.y, render->camera.eye.z);
-
-  //y += lineHeight;
-  //Vector3 at = render->camera.eye + render->camera.view.getCol(2);
-  //print(hdc, x, y, "camera at: [%.03f, %.03f, %.03f]", at.x, at.y, at.z);
-
-  //y += lineHeight;
-  //Vector3 up = render->camera.view.getCol(1);
-  //print(hdc, x, y, "camera up: [%.03f, %.03f, %.03f]", up.x, up.y, up.z);
-
-  //y += lineHeight;
-  //print(hdc, x, y, "yaw / pitch: %.03f / %.03f", render->camera.yaw, render->camera.pitch);
-
-  //y += lineHeight;
-  //print(hdc, x, y, "turnSpeed: RL:%.03f UD:%.03f", render->camera.turnRLSpeed, render->camera.turnUDSpeed);
-
-  //y += lineHeight;
-  //print(hdc, x, y, "shiftSpeed: RL:%.03f UD:%.03f FB:%.03f", render->camera.shiftRLSpeed, render->camera.shiftUDSpeed, render->camera.shiftFBSpeed);
+  y += lineHeight * 2;
+  print(hdc, x, y, "F2 : save screenshot");
 }
 
-void DrawImage(HWND hWnd, HDC hdc)
+void DrawImage(const HWND hWnd, const HDC hdc)
 {
-  BITMAPINFO bmi;
-
   if (imageReady)
   {
     if (bmWidth != render->imageWidth || bmHeight != render->imageHeight)
@@ -165,6 +167,7 @@ void DrawImage(HWND hWnd, HDC hdc)
         pixels = NULL;
       }
 
+      BITMAPINFO bmi; 
       bmi.bmiHeader.biSize = sizeof(bmi.bmiHeader);
       bmi.bmiHeader.biWidth = max(render->imageWidth, 1);
       bmi.bmiHeader.biHeight = max(render->imageHeight, 1);
@@ -207,9 +210,8 @@ void DrawImage(HWND hWnd, HDC hdc)
       clientRect.left = clientRect.right = clientRect.top = clientRect.bottom = 0;
 
     SetStretchBltMode(hdc, HALFTONE);
-    float bmAspect = float(bmWidth) / bmHeight;
     float clientAspect = float(clientRect.right) / clientRect.bottom;
-    int yGap = int(bmWidth / clientAspect) - bmHeight;
+    const int yGap = int(bmWidth / clientAspect) - bmHeight;
 
     StretchBlt(hdc, 0, 0, clientRect.right, clientRect.bottom, memDC, 0, -yGap / 2, bmWidth, bmHeight + yGap, SRCCOPY);
   }
@@ -219,35 +221,54 @@ void DrawImage(HWND hWnd, HDC hdc)
 //                                 Events
 // -----------------------------------------------------------------------------
 
-void OnResize(HWND hWnd, int width, int height)
+void OnResize(const HWND hWnd, const int width, const int height)
 {
   UNREFERENCED_PARAMETER(width);
   UNREFERENCED_PARAMETER(height);
 
+  if (!scrnshotSaving)
+  {
+    RECT clientRect;
+    if (GetClientRect(hWnd, &clientRect) && clientRect.right && clientRect.bottom)
+    {
+      const int width = clientRect.right;
+      const int height = clientRect.bottom;
+      if (width && height && (width != render->imageWidth || height != render->imageHeight))
+        render->setImageSize(clientRect.right, clientRect.bottom);
+    }
+  }
+}
+
+void OnPaint(const HWND hWnd, const HDC hdc)
+{
   RECT clientRect;
   if (GetClientRect(hWnd, &clientRect) && clientRect.right && clientRect.bottom)
-    render->setImageSize(clientRect.right, clientRect.bottom);
-  else
-    render->setImageSize(1, 1);
+  {
+    const int width = clientRect.right;
+    const int height = clientRect.bottom;
+    const HBITMAP bm = CreateCompatibleBitmap(hdc, width, height);
+    const HDC dc = CreateCompatibleDC(hdc);
+    SelectObject(dc, bm);
+
+    if (scrnshotProgress >= 0)
+    {
+      DrawImage(hWnd, dc);
+//      FillRect(dc, &clientRect, (HBRUSH)GetStockObject(DKGRAY_BRUSH));
+      DrawScreenshotStats(dc);
+    }
+    else
+    {
+      DrawImage(hWnd, dc);
+      DrawSceneStats(dc);
+    }
+
+    BitBlt(hdc, 0, 0, width, height, dc, 0, 0, SRCCOPY);
+    DeleteDC(dc);
+    DeleteObject(bm);
+  }
 }
 
-void OnPaint(HWND hWnd, HDC hdc)
-{
-  if (scrnshotProgress >= 0)
-  {
-    RECT r;
-    GetClientRect(hWnd, &r);
-    FillRect(hdc, &r, (HBRUSH)GetStockObject(DKGRAY_BRUSH));
-    DrawScreenshotStats(hdc);
-  }
-  else
-  {
-    DrawImage(hWnd, hdc);
-    DrawSceneStats(hdc);
-  }
-}
-
-void OnKeyDown(int Key)
+void OnKeyDown(const int Key)
 {
   switch (Key)
   {
@@ -282,10 +303,10 @@ void OnKeyDown(int Key)
     controlFlags |= shiftDownMask;
     break;
   case VK_F2:
-    scrnshotRequested = true;
+    scrnshotSaving = true;
     break;
   case VK_ESCAPE:
-    if (scrnshotRequested)
+    if (scrnshotSaving)
       scrnshotCancelRequested = true;
     break;
   case 'Y':
@@ -300,7 +321,7 @@ void OnKeyDown(int Key)
   }
 }
 
-void OnKeyUp(int Key)
+void OnKeyUp(const int Key)
 {
   switch (Key)
   {
@@ -362,10 +383,10 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
     OnResize(hWnd, LOWORD(lParam), HIWORD(lParam));
     break;
   case WM_KEYDOWN:
-    OnKeyDown(wParam);
+    OnKeyDown(int(wParam));
     break;
   case WM_KEYUP:
-    OnKeyUp(wParam);
+    OnKeyUp(int(wParam));
     break;
   default:
     return DefWindowProc(hWnd, message, wParam, lParam);
@@ -374,20 +395,102 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
   return 0;
 }
 
+void ScrnshotSavingPulse()
+{
+  if (scrnshotProgress < 0)
+  {
+    FILETIME ft;
+    const int bufSize = 256;
+    char name[bufSize];
+    GetSystemTimeAsFileTime(&ft);
+    sprintf(name, "scrnshoot_%08X%08X.bmp", ft.dwHighDateTime, ft.dwLowDateTime);
+    scrnshotFileName = std::string(exeFullPath) + name;
+
+    render->setImageSize(Default::scrnshotWidth, Default::scrnshotHeight);
+    scrnshotStartTicks = GetTickCount();
+    render->renderBegin(Default::scrnshotRefections, Default::scrnshotSamples, false);
+  }
+
+  if (!scrnshotCancelConfirmed && render->renderNext(1))
+  {
+    scrnshotProgress = render->getRenderProgress();
+    InvalidateRect(hWnd, NULL, false);
+  }
+  else
+  {
+    if (!scrnshotCancelConfirmed)
+    {
+      Texture imageTexture(render->imageWidth, render->imageHeight);
+      render->copyImage(imageTexture);
+      imageTexture.saveToFile(scrnshotFileName.c_str());
+    }
+    scrnshotProgress = -1;
+    scrnshotSaving = false;
+    scrnshotCancelConfirmed = false;
+
+    RECT clientRect;
+    if (GetClientRect(hWnd, &clientRect) && clientRect.right && clientRect.bottom)
+      render->setImageSize(clientRect.right, clientRect.bottom);
+    else
+      render->setImageSize(1, 1);
+  }
+}
+
+void ImageRenderPulse()
+{
+  static int motionDynSamples = Default::motionMinSamples;
+  static int prevSamples = 0;
+  static bool prevInMotion = false;
+
+  const bool inMotion = controlFlags || render->camera.inMotion();
+
+  if (!imageReady)
+  {
+    if (!render->inProgress || (inMotion && motionDynSamples != prevSamples))
+    {
+      if (inMotion)
+      {
+        if (frameTime > Default::maxMotionFrameTime)
+          motionDynSamples = max(motionDynSamples - 1, Default::motionMaxSamples);
+        else if (frameTime < Default::minMotionFrameTime)
+          motionDynSamples = min(motionDynSamples + 1, Default::motionMinSamples);
+      }
+
+      const int reflNum = (inMotion || prevInMotion) ? Default::motionReflections : Default::staticReflections;
+      const int sampleNum = (inMotion || prevInMotion) ? motionDynSamples : Default::staticSamples;
+
+      render->renderBegin(reflNum, sampleNum, !(inMotion || prevInMotion));
+      prevSamples = sampleNum;
+      prevInMotion = inMotion;
+    }
+
+    LARGE_INTEGER cnt0, cnt1;
+    const bool cnt0Success = QueryPerformanceCounter(&cnt0) != 0;
+
+    const int linesLeft = render->renderNext(1);
+
+    if (initPerfSuccess &&
+      cnt0Success &&
+      QueryPerformanceCounter(&cnt1))
+    {
+      frameChunkTime += float(cnt1.QuadPart - cnt0.QuadPart) / perfFreq.QuadPart;
+    }
+
+    if (!linesLeft)
+    {
+      frameTime = frameChunkTime;
+      frameChunkTime = 0;
+      if (!IsIconic(hWnd))
+        imageReady = true;
+      InvalidateRect(hWnd, NULL, false);
+    }
+  }
+}
+
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
   UNREFERENCED_PARAMETER(hPrevInstance);
   UNREFERENCED_PARAMETER(lpCmdLine);
-
-  font = CreateFontA(-10, -4, 0, 0, FW_NORMAL, false, false, false, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, FF_DONTCARE, "Aria");
-
-  char exeFullName[MAX_PATH];
-  char* lpExeName;
-  GetModuleFileNameA(NULL, exeFullName, MAX_PATH);
-  GetFullPathNameA(exeFullName, MAX_PATH, exeFullPath, &lpExeName);
-  *lpExeName = '\0';
-
-  render = new Render(exeFullPath);
 
   WNDCLASSEXA wcex;
   wcex.cbSize = sizeof(wcex);
@@ -405,7 +508,18 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
   RegisterClassExA(&wcex);
 
-  HWND hWnd = CreateWindowA("clReflaxWindow", "Reflax", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 640, 480, NULL, NULL, hInstance, NULL);
+  hWnd = CreateWindowA("clReflaxWindow", "Reflax", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 
+    640, 480, NULL, NULL, hInstance, NULL);
+  font = CreateFontA(12, -4, 0, 0, FW_NORMAL, false, false, false, DEFAULT_CHARSET, 
+    OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, FF_DONTCARE, "Aria");
+
+  char exeFullName[MAX_PATH];
+  char * lpExeName;
+  GetModuleFileNameA(NULL, exeFullName, MAX_PATH);
+  GetFullPathNameA(exeFullName, MAX_PATH, exeFullPath, &lpExeName);
+  *lpExeName = '\0';
+
+  render = new Render(exeFullPath);
 
   if (hWnd)
   {
@@ -413,12 +527,6 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     UpdateWindow(hWnd);
 
     MSG msg;
-    int motionSampleNum = -4;
-    const int staticSampleNum = 1;
-    const int motionReflNum = 3;
-    const int staticReflNum = 7;
-    int sampleNum = staticSampleNum;
-    int reflNum = staticReflNum;
 
     while (!quitMessage)
     {
@@ -428,94 +536,14 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         DispatchMessage(&msg);
       }
 
-      if (scrnshotRequested)
+      if (scrnshotSaving)
       {
-        if (scrnshotProgress < 0)
-        {
-          const int scrnshotWidth = 1680;
-          const int scrnshotHeight = 1050;
-          const int scrnshotRefections = 7;
-          const int scrnshotSampleNumber = 64;
-
-          FILETIME ft;
-          const int bufSize = 256;
-          char name[bufSize];
-          GetSystemTimeAsFileTime(&ft);
-          sprintf(name, "scrnshoot_%08X%08X.bmp", ft.dwHighDateTime, ft.dwLowDateTime);
-          scrnshotFileName = std::string(exeFullPath) + name;
-
-          render->setImageSize(scrnshotWidth, scrnshotHeight);
-          scrnshotStartTicks = GetTickCount();
-          render->renderBegin(scrnshotRefections, scrnshotSampleNumber, false);
-        }
-
-        if (!scrnshotCancelConfirmed && render->renderNext(1))
-        {
-          scrnshotProgress = render->getRenderProgress();
-          InvalidateRect(hWnd, NULL, false);
-        }
-        else
-        {
-          if (!scrnshotCancelConfirmed)
-          {
-            Texture imageTexture(render->imageWidth, render->imageHeight);
-            render->copyImage(imageTexture);
-            imageTexture.saveToFile(scrnshotFileName.c_str());
-          }
-          scrnshotProgress = -1;
-          scrnshotRequested = false;
-          scrnshotCancelConfirmed = false;
-
-          RECT clientRect;
-          if (GetClientRect(hWnd, &clientRect) && clientRect.right && clientRect.bottom)
-            render->setImageSize(clientRect.right, clientRect.bottom);
-          else
-            render->setImageSize(1, 1);
-        }
+        ScrnshotSavingPulse();
       }
-      else if (GetForegroundWindow() == hWnd)
+      else
       {
         ProceedControl();
-        bool inMotion = controlFlags || render->camera.inMotion();
-
-        if (!render->inProgress() || (inMotion && sampleNum != motionSampleNum))
-        {
-          if (inMotion)
-          {
-            if (frameTime > 0.030f)
-              motionSampleNum = max(motionSampleNum - 1, -8);
-            else if (frameTime < 0.015f)
-              motionSampleNum = min(motionSampleNum + 1, -1);
-          }
-
-          sampleNum = inMotion ? motionSampleNum : staticSampleNum;
-          reflNum = inMotion ? motionReflNum : staticReflNum;
-          render->renderBegin(reflNum, sampleNum, !inMotion);
-        }
-
-        if (!imageReady)
-        {
-          LARGE_INTEGER cnt0, cnt1;
-          bool cnt0Success = QueryPerformanceCounter(&cnt0) != 0;
-
-          int linesLeft = render->renderNext(1);
-
-          if (initPerfSuccess &&
-            cnt0Success &&
-            QueryPerformanceCounter(&cnt1) &&
-            cnt1.QuadPart != cnt0.QuadPart)
-          {
-            frameChunkTime += float(cnt1.QuadPart - cnt0.QuadPart) / perfFreq.QuadPart;
-          }
-
-          if (!linesLeft)
-          {
-            frameTime = frameChunkTime;
-            frameChunkTime = 0;
-            imageReady = true;
-            InvalidateRect(hWnd, NULL, false);
-          }
-        }
+        ImageRenderPulse();
       }
     }
 
