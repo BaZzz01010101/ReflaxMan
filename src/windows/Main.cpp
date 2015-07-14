@@ -31,12 +31,14 @@ int controlFlags = 0;
 
 void print(const HDC hdc, const int x, const int y, const char* format, ...)
 {
-  const int buf_len = 256;
-  char buffer[buf_len];
-
+  static std::vector<char> buf(1024);
   va_list args;
   va_start(args, format);
-  vsprintf(buffer, format, args);
+  size_t str_size = 1 + vsnprintf(0, 0, format, args);
+  if (str_size > buf.size())
+    buf.resize(str_size);
+  char * buffer = &buf.front();
+  vsnprintf(buffer, str_size, format, args);
   va_end(args);
 
   SetTextColor(hdc, 0xAAAAAA);
@@ -404,7 +406,8 @@ void ScrnshotSavingPulse()
     char name[bufSize];
     GetSystemTimeAsFileTime(&ft);
     sprintf(name, "scrnshoot_%08X%08X.bmp", ft.dwHighDateTime, ft.dwLowDateTime);
-    scrnshotFileName = std::string(exeFullPath) + name;
+    scrnshotFileName = exeFullPath;
+    scrnshotFileName += name;
 
     render->setImageSize(Default::scrnshotWidth, Default::scrnshotHeight);
     scrnshotStartTicks = GetTickCount();
