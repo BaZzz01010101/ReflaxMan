@@ -34,8 +34,8 @@ bool Texture::loadFromTGAFile(const char * fileName)
   {
     TGAFileHeader header;
 
-    if (fread((void *)&header, sizeof(TGAFileHeader), 1, fh) 
-      && 
+    if (fread((void *)&header, sizeof(TGAFileHeader), 1, fh)
+      &&
       header.imagetype == 2)
     {
       width = header.xsize;
@@ -43,8 +43,8 @@ bool Texture::loadFromTGAFile(const char * fileName)
       const int bpp = header.bpix;
       const int colorOffset = sizeof(header)+header.idlen + header.cmlen * header.cmbits / 8;
 
-      if (!fseek(fh, colorOffset, SEEK_SET) 
-        && 
+      if (!fseek(fh, colorOffset, SEEK_SET)
+        &&
         (bpp == 24 || bpp == 32))
       {
         int pixelCount = width * height;

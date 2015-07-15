@@ -2614,3 +2614,164 @@
 	"Vector3.h"
 	"Matrix33.h"
 
+1436926060 source:/home/andy/Projects/ReflaxMan/src/common/Camera.cpp
+	"trace_math.h"
+	"Camera.h"
+
+1436922739 /home/andy/Projects/ReflaxMan/src/common/trace_math.h
+	<assert.h>
+	<memory.h>
+	<stdlib.h>
+	<stdio.h>
+	<float.h>
+	<cmath>
+	<string>
+	"Vector3.h"
+
+1436919806 /home/andy/Projects/ReflaxMan/src/common/Vector3.h
+
+1436919735 /home/andy/Projects/ReflaxMan/src/common/Camera.h
+	"Vector3.h"
+	"Matrix33.h"
+
+1436919753 /home/andy/Projects/ReflaxMan/src/common/Matrix33.h
+
+1436926060 source:/home/andy/Projects/ReflaxMan/src/common/Color.cpp
+	"trace_math.h"
+	"Color.h"
+
+1436919739 /home/andy/Projects/ReflaxMan/src/common/Color.h
+	"stdint.h"
+
+1436926060 source:/home/andy/Projects/ReflaxMan/src/common/Material.cpp
+	"trace_math.h"
+	"Material.h"
+
+1436919748 /home/andy/Projects/ReflaxMan/src/common/Material.h
+	"Color.h"
+
+1436926060 source:/home/andy/Projects/ReflaxMan/src/common/Matrix33.cpp
+	"trace_math.h"
+	"Matrix33.h"
+	"Vector3.h"
+
+1436926060 source:/home/andy/Projects/ReflaxMan/src/common/OmniLight.cpp
+	"trace_math.h"
+	"OmniLight.h"
+
+1436919761 /home/andy/Projects/ReflaxMan/src/common/OmniLight.h
+	"Vector3.h"
+	"Color.h"
+
+1436926060 source:/home/andy/Projects/ReflaxMan/src/common/Plane.cpp
+	"trace_math.h"
+	"Plane.h"
+
+1436919766 /home/andy/Projects/ReflaxMan/src/common/Plane.h
+	"SceneObject.h"
+	"Vector3.h"
+
+1436919783 /home/andy/Projects/ReflaxMan/src/common/SceneObject.h
+	"Vector3.h"
+	"Material.h"
+
+1436960929 source:/home/andy/Projects/ReflaxMan/src/common/Render.cpp
+	"trace_math.h"
+	"Render.h"
+
+1436919775 /home/andy/Projects/ReflaxMan/src/common/Render.h
+	<vector>
+	"Scene.h"
+	"Texture.h"
+	"Camera.h"
+
+1436919779 /home/andy/Projects/ReflaxMan/src/common/Scene.h
+	<vector>
+	"SceneObject.h"
+	"OmniLight.h"
+	"Sphere.h"
+	"Triangle.h"
+	"Camera.h"
+	"Skybox.h"
+	"Texture.h"
+	"Color.h"
+
+1436919792 /home/andy/Projects/ReflaxMan/src/common/Sphere.h
+	"Vector3.h"
+	"Material.h"
+	"SceneObject.h"
+
+1436919801 /home/andy/Projects/ReflaxMan/src/common/Triangle.h
+	"SceneObject.h"
+	"Vector3.h"
+	"Texture.h"
+	"Matrix33.h"
+
+1436919797 /home/andy/Projects/ReflaxMan/src/common/Texture.h
+	<vector>
+	"Color.h"
+
+1436919788 /home/andy/Projects/ReflaxMan/src/common/Skybox.h
+	"Vector3.h"
+	"Plane.h"
+	"Texture.h"
+
+1436926060 source:/home/andy/Projects/ReflaxMan/src/common/Scene.cpp
+	"trace_math.h"
+	"Scene.h"
+	"Sphere.h"
+	"Triangle.h"
+
+1436919781 source:/home/andy/Projects/ReflaxMan/src/common/SceneObject.cpp
+	"SceneObject.h"
+
+1436926060 source:/home/andy/Projects/ReflaxMan/src/common/Skybox.cpp
+	"trace_math.h"
+	"Skybox.h"
+
+1436926060 source:/home/andy/Projects/ReflaxMan/src/common/Sphere.cpp
+	"trace_math.h"
+	"Vector3.h"
+	"Sphere.h"
+
+1436968231 source:/home/andy/Projects/ReflaxMan/src/common/Texture.cpp
+	"trace_math.h"
+	"Texture.h"
+	"image_headers.h"
+
+1436922776 /home/andy/Projects/ReflaxMan/src/common/image_headers.h
+
+1436926060 source:/home/andy/Projects/ReflaxMan/src/common/trace_math.cpp
+	"trace_math.h"
+
+1436926060 source:/home/andy/Projects/ReflaxMan/src/common/Triangle.cpp
+	"trace_math.h"
+	"Triangle.h"
+
+1436926060 source:/home/andy/Projects/ReflaxMan/src/common/Vector3.cpp
+	"trace_math.h"
+	"Vector3.h"
+	"Matrix33.h"
+
+1436969712 source:/home/andy/Projects/ReflaxMan/src/linux/main.cpp
+	<X11/Xlib.h>
+	<X11/Xutil.h>
+	<X11/keysym.h>
+	<limits.h>
+	<unistd.h>
+	<stdbool.h>
+	<stdio.h>
+	<string.h>
+	<malloc.h>
+	<time.h>
+	<cstdarg>
+	<fcntl.h>
+	<sys/ioctl.h>
+	<sys/stat.h>
+	<linux/kd.h>
+	"../common/trace_math.h"
+	"../common/defaults.h"
+	"../common/Render.h"
+
+1436919742 /home/andy/Projects/ReflaxMan/src/common/defaults.h
+

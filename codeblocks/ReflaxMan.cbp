@@ -7,27 +7,32 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Debug">
-				<Option output="Build/ReflaxMan" prefix_auto="1" extension_auto="1" />
-				<Option object_output="Build/obj/Debug" />
-				<Option type="1" />
+				<Option output="../build/ReflaxMan_debug" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="../build/" />
+				<Option object_output="Debug" />
+				<Option type="0" />
 				<Option compiler="gcc" />
-				<Option use_console_runner="0" />
 				<Compiler>
 					<Add option="-std=c++0x" />
 					<Add option="-g" />
+					<Add option="-Wmultichar" />
 				</Compiler>
 				<Linker>
 					<Add option="-lX11" />
 				</Linker>
 			</Target>
 			<Target title="Release">
-				<Option output="Build/ReflaxMan" prefix_auto="1" extension_auto="1" />
-				<Option object_output="Build/obj/Release/" />
+				<Option output="../build/ReflaxMan" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="../build/" />
+				<Option object_output="Release" />
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add option="-O2" />
+					<Add option="-fexpensive-optimizations" />
+					<Add option="-O3" />
 					<Add option="-std=c++0x" />
+					<Add option="-Wmultichar" />
+					<Add option="-DNDEBUG" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -38,38 +43,39 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
-		<Unit filename="airly/Camera.cpp" />
-		<Unit filename="airly/Camera.h" />
-		<Unit filename="airly/Color.cpp" />
-		<Unit filename="airly/Color.h" />
-		<Unit filename="airly/Material.cpp" />
-		<Unit filename="airly/Material.h" />
-		<Unit filename="airly/Matrix33.cpp" />
-		<Unit filename="airly/Matrix33.h" />
-		<Unit filename="airly/OmniLight.cpp" />
-		<Unit filename="airly/OmniLight.h" />
-		<Unit filename="airly/Plane.cpp" />
-		<Unit filename="airly/Plane.h" />
-		<Unit filename="airly/Quaternion.cpp" />
-		<Unit filename="airly/Quaternion.h" />
-		<Unit filename="airly/Scene.cpp" />
-		<Unit filename="airly/Scene.h" />
-		<Unit filename="airly/SceneObject.cpp" />
-		<Unit filename="airly/SceneObject.h" />
-		<Unit filename="airly/Skybox.cpp" />
-		<Unit filename="airly/Skybox.h" />
-		<Unit filename="airly/Sphere.cpp" />
-		<Unit filename="airly/Sphere.h" />
-		<Unit filename="airly/Texture.cpp" />
-		<Unit filename="airly/Texture.h" />
-		<Unit filename="airly/Triangle.cpp" />
-		<Unit filename="airly/Triangle.h" />
-		<Unit filename="airly/Vector3.cpp" />
-		<Unit filename="airly/Vector3.h" />
-		<Unit filename="airly/airly.cpp" />
-		<Unit filename="airly/airly.h" />
-		<Unit filename="airly/image_file_headers.h" />
-		<Unit filename="unix/main.cpp" />
+		<Unit filename="../src/common/Camera.cpp" />
+		<Unit filename="../src/common/Camera.h" />
+		<Unit filename="../src/common/Color.cpp" />
+		<Unit filename="../src/common/Color.h" />
+		<Unit filename="../src/common/Material.cpp" />
+		<Unit filename="../src/common/Material.h" />
+		<Unit filename="../src/common/Matrix33.cpp" />
+		<Unit filename="../src/common/Matrix33.h" />
+		<Unit filename="../src/common/OmniLight.cpp" />
+		<Unit filename="../src/common/OmniLight.h" />
+		<Unit filename="../src/common/Plane.cpp" />
+		<Unit filename="../src/common/Plane.h" />
+		<Unit filename="../src/common/Render.cpp" />
+		<Unit filename="../src/common/Render.h" />
+		<Unit filename="../src/common/Scene.cpp" />
+		<Unit filename="../src/common/Scene.h" />
+		<Unit filename="../src/common/SceneObject.cpp" />
+		<Unit filename="../src/common/SceneObject.h" />
+		<Unit filename="../src/common/Skybox.cpp" />
+		<Unit filename="../src/common/Skybox.h" />
+		<Unit filename="../src/common/Sphere.cpp" />
+		<Unit filename="../src/common/Sphere.h" />
+		<Unit filename="../src/common/Texture.cpp" />
+		<Unit filename="../src/common/Texture.h" />
+		<Unit filename="../src/common/Triangle.cpp" />
+		<Unit filename="../src/common/Triangle.h" />
+		<Unit filename="../src/common/Vector3.cpp" />
+		<Unit filename="../src/common/Vector3.h" />
+		<Unit filename="../src/common/defaults.h" />
+		<Unit filename="../src/common/image_headers.h" />
+		<Unit filename="../src/common/trace_math.cpp" />
+		<Unit filename="../src/common/trace_math.h" />
+		<Unit filename="../src/linux/main.cpp" />
 		<Extensions>
 			<code_completion />
 			<debugger />

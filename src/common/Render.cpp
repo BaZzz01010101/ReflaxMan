@@ -52,15 +52,23 @@ void Render::setImageSize(int width, int height)
 {
   assert(width > 0);
   assert(height > 0);
+  if(width > 0 && height > 0)
+  {
+    if(width * height > (int)image.size())
+      image.resize(width * height);
 
-  image.resize(width * height);
-  for (std::vector<Color>::iterator it = image.begin(); it != image.end(); ++it)
-    *it = Color(0, 0, 0);
-  imageWidth = width;
-  imageHeight = height;
-  additiveCounter = 0;
-  scanLinesRendered = 0;
-  inProgress = false;
+    Color * pCol = &image.front();
+    Color * endCol = pCol + width * height;
+
+    while(pCol < endCol)
+      *pCol++ = Color(0, 0, 0);
+
+    imageWidth = width;
+    imageHeight = height;
+    additiveCounter = 0;
+    scanLinesRendered = 0;
+    inProgress = false;
+  }
 }
 
 void Render::copyImage(Texture & texture) const
@@ -80,12 +88,12 @@ void Render::copyImage(Texture & texture) const
     while (texPixel < endTexPixel)
       *texPixel++ = (imagePixel++)->argb();
   }
-  else 
+  else
     texture.clear(0);
 }
 
 Color Render::imagePixel(int x, int y) const
-{ 
+{
   assert(x >= 0);
   assert(y >= 0);
 
