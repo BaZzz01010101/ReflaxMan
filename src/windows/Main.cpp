@@ -2,9 +2,9 @@
 #include <windows.h>
 #include "stdafx.h"
 
-#include "..\airly\airly.h"
-#include "..\airly\Render.h"
-#include "..\airly\defaults.h"
+#include "..\common\trace_math.h"
+#include "..\common\Render.h"
+#include "..\common\defaults.h"
 
 HWND hWnd = NULL;
 Render * render = NULL;

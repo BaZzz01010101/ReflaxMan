@@ -1,6 +1,6 @@
-#include "airly.h"
+#include "trace_math.h"
 #include "Texture.h"
-#include "image_file_headers.h"
+#include "image_headers.h"
 
 
 Texture::Texture()

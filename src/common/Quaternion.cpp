@@ -1,3 +1,4 @@
+#include "trace_math.h"
 #include "Quaternion.h"
 
 

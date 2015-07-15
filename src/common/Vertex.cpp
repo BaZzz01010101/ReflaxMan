@@ -1,3 +1,4 @@
+#include "trace_math.h"
 #include "Vertex.h"
 
 

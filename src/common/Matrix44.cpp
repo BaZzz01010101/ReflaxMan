@@ -1,4 +1,4 @@
-#include <memory.h>
+#include "trace_math.h"
 #include "Matrix44.h"
 #include "Vector3.h"
 
