@@ -576,7 +576,7 @@ int main()
 
     while (!quitMessage)
     {
-      while(XPending(dsp))
+      while(!quitMessage && XPending(dsp))
       {
         XNextEvent(dsp, &e);
         ProcessEvent(e);
