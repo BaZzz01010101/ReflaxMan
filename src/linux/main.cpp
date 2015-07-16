@@ -111,13 +111,9 @@ void ProceedControl()
 
   if(initSuccess && !clock_gettime(CLOCK_MONOTONIC, &ts))
   {
-    int ms = clock_timediff_ms(ts, prevTs);
-
-    if(ms > 1)
-    {
-      render->camera.proceedControl(controlFlags, ms);
-      prevTs = ts;
-    }
+    const float timePassedSec = float(clock_timediff_mcs(ts, prevTs)) / 1000000.f;
+    render->camera.proceedControl(controlFlags, timePassedSec);
+    prevTs = ts;
   }
 }
 

@@ -106,10 +106,8 @@ Camera::~Camera()
 {
 }
 
-void Camera::proceedControl(const int controlFlags, const int timePassedMs)
+void Camera::proceedControl(const int controlFlags, const float timePassedSec)
 {
-  float timePassed = timePassedMs / 1000.0f;
-
   float prevTurnRLSpeed = turnRLSpeed;
   float prevTurnUDSpeed = turnUDSpeed;
   float prevShiftRLSpeed = shiftRLSpeed;
@@ -119,32 +117,32 @@ void Camera::proceedControl(const int controlFlags, const int timePassedMs)
   switch (controlFlags & (turnLeftMask | turnRightMask))
   {
   case turnRightMask:
-    turnRLSpeed = clamp(turnRLSpeed + turnAccel * timePassed, -maxTurnSpeed, maxTurnSpeed);
+    turnRLSpeed = clamp(turnRLSpeed + turnAccel * timePassedSec, -maxTurnSpeed, maxTurnSpeed);
     break;
   case turnLeftMask:
-    turnRLSpeed = clamp(turnRLSpeed - turnAccel * timePassed, -maxTurnSpeed, maxTurnSpeed);
+    turnRLSpeed = clamp(turnRLSpeed - turnAccel * timePassedSec, -maxTurnSpeed, maxTurnSpeed);
     break;
   default:
     if (turnRLSpeed < 0.0f)
-      turnRLSpeed = min(0.0f, turnRLSpeed + turnDecel * timePassed);
+      turnRLSpeed = min(0.0f, turnRLSpeed + turnDecel * timePassedSec);
     else if (turnRLSpeed > 0.0f)
-      turnRLSpeed = max(0.0f, turnRLSpeed - turnDecel * timePassed);
+      turnRLSpeed = max(0.0f, turnRLSpeed - turnDecel * timePassedSec);
     break;
   }
 
   switch (controlFlags & (turnUpMask | turnDownMask))
   {
   case turnUpMask:
-    turnUDSpeed = clamp(turnUDSpeed + turnAccel * timePassed, -maxTurnSpeed, maxTurnSpeed);
+    turnUDSpeed = clamp(turnUDSpeed + turnAccel * timePassedSec, -maxTurnSpeed, maxTurnSpeed);
     break;
   case turnDownMask:
-    turnUDSpeed = clamp(turnUDSpeed - turnAccel * timePassed, -maxTurnSpeed, maxTurnSpeed);
+    turnUDSpeed = clamp(turnUDSpeed - turnAccel * timePassedSec, -maxTurnSpeed, maxTurnSpeed);
     break;
   default:
     if (turnUDSpeed < 0.0f)
-      turnUDSpeed = min(0.0f, turnUDSpeed + turnDecel * timePassed);
+      turnUDSpeed = min(0.0f, turnUDSpeed + turnDecel * timePassedSec);
     else if (turnUDSpeed > 0.0f)
-      turnUDSpeed = max(0.0f, turnUDSpeed - turnDecel * timePassed);
+      turnUDSpeed = max(0.0f, turnUDSpeed - turnDecel * timePassedSec);
     break;
   }
 
@@ -152,60 +150,60 @@ void Camera::proceedControl(const int controlFlags, const int timePassedMs)
   {
   case shiftRightMask:
     if (shiftRLSpeed < 0.0f)
-      shiftRLSpeed = clamp(shiftRLSpeed + (shiftDecel + shiftAccel) * timePassed, -maxShiftSpeed, maxShiftSpeed);
+      shiftRLSpeed = clamp(shiftRLSpeed + (shiftDecel + shiftAccel) * timePassedSec, -maxShiftSpeed, maxShiftSpeed);
     else
-      shiftRLSpeed = clamp(shiftRLSpeed + shiftAccel * timePassed, -maxShiftSpeed, maxShiftSpeed);
+      shiftRLSpeed = clamp(shiftRLSpeed + shiftAccel * timePassedSec, -maxShiftSpeed, maxShiftSpeed);
     break;
   case shiftLeftMask:
     if (shiftRLSpeed > 0.0f)
-      shiftRLSpeed = clamp(shiftRLSpeed - (shiftDecel + shiftAccel) * timePassed, -maxShiftSpeed, maxShiftSpeed);
+      shiftRLSpeed = clamp(shiftRLSpeed - (shiftDecel + shiftAccel) * timePassedSec, -maxShiftSpeed, maxShiftSpeed);
     else
-      shiftRLSpeed = clamp(shiftRLSpeed - shiftAccel * timePassed, -maxShiftSpeed, maxShiftSpeed);
+      shiftRLSpeed = clamp(shiftRLSpeed - shiftAccel * timePassedSec, -maxShiftSpeed, maxShiftSpeed);
     break;
     break;
   default:
     if (shiftRLSpeed < 0.0f)
-      shiftRLSpeed = min(0.0f, shiftRLSpeed + shiftDecel * timePassed);
+      shiftRLSpeed = min(0.0f, shiftRLSpeed + shiftDecel * timePassedSec);
     else if (shiftRLSpeed > 0.0f)
-      shiftRLSpeed = max(0.0f, shiftRLSpeed - shiftDecel * timePassed);
+      shiftRLSpeed = max(0.0f, shiftRLSpeed - shiftDecel * timePassedSec);
     break;
   }
 
   switch (controlFlags & (shiftUpMask | shiftDownMask))
   {
   case shiftUpMask:
-    shiftUDSpeed = clamp(shiftUDSpeed + shiftAccel * timePassed, -maxShiftSpeed, maxShiftSpeed);
+    shiftUDSpeed = clamp(shiftUDSpeed + shiftAccel * timePassedSec, -maxShiftSpeed, maxShiftSpeed);
     break;
   case shiftDownMask:
-    shiftUDSpeed = clamp(shiftUDSpeed - shiftAccel * timePassed, -maxShiftSpeed, maxShiftSpeed);
+    shiftUDSpeed = clamp(shiftUDSpeed - shiftAccel * timePassedSec, -maxShiftSpeed, maxShiftSpeed);
     break;
   default:
     if (shiftUDSpeed < 0.0f)
-      shiftUDSpeed = min(0.0f, shiftUDSpeed + shiftDecel * timePassed);
+      shiftUDSpeed = min(0.0f, shiftUDSpeed + shiftDecel * timePassedSec);
     else if (shiftUDSpeed > 0.0f)
-      shiftUDSpeed = max(0.0f, shiftUDSpeed - shiftDecel * timePassed);
+      shiftUDSpeed = max(0.0f, shiftUDSpeed - shiftDecel * timePassedSec);
     break;
   }
 
   switch (controlFlags & (shiftBackMask | shiftForwardMask))
   {
   case shiftForwardMask:
-    shiftFBSpeed = clamp(shiftFBSpeed + shiftAccel * timePassed, -maxShiftSpeed, maxShiftSpeed);
+    shiftFBSpeed = clamp(shiftFBSpeed + shiftAccel * timePassedSec, -maxShiftSpeed, maxShiftSpeed);
     break;
   case shiftBackMask:
-    shiftFBSpeed = clamp(shiftFBSpeed - shiftAccel * timePassed, -maxShiftSpeed, maxShiftSpeed);
+    shiftFBSpeed = clamp(shiftFBSpeed - shiftAccel * timePassedSec, -maxShiftSpeed, maxShiftSpeed);
     break;
   default:
     if (shiftFBSpeed < 0.0f)
-      shiftFBSpeed = min(0.0f, shiftFBSpeed + shiftDecel * timePassed);
+      shiftFBSpeed = min(0.0f, shiftFBSpeed + shiftDecel * timePassedSec);
     else if (shiftFBSpeed > 0.0f)
-      shiftFBSpeed = max(0.0f, shiftFBSpeed - shiftDecel * timePassed);
+      shiftFBSpeed = max(0.0f, shiftFBSpeed - shiftDecel * timePassedSec);
     break;
   }
 
   float const M_2PI = 2 * M_PI;
-  yaw += timePassed * M_2PI * (turnRLSpeed + prevTurnRLSpeed) / 2.0f;
-  pitch = clamp(pitch + timePassed * M_2PI * (turnUDSpeed + prevTurnUDSpeed) / 2.0f, float(-0.95f * M_PI_2), float(0.95f * M_PI_2));
+  yaw += timePassedSec * M_2PI * (turnRLSpeed + prevTurnRLSpeed) / 2.0f;
+  pitch = clamp(pitch + timePassedSec * M_2PI * (turnUDSpeed + prevTurnUDSpeed) / 2.0f, float(-0.95f * M_PI_2), float(0.95f * M_PI_2));
 
   if (yaw >= M_2PI)
     yaw -= M_2PI;
@@ -236,7 +234,7 @@ void Camera::proceedControl(const int controlFlags, const int timePassedMs)
     if (shiftSqLength > Default::maxShiftSpeed * Default::maxShiftSpeed)
       shift = shift * Default::maxShiftSpeed / sqrtf(shiftSqLength);
 
-    eye += shift * timePassed;
+    eye += shift * timePassedSec;
   }
 }
 

@@ -56,7 +56,7 @@ void Render::setImageSize(unsigned int width, unsigned int height)
 
   if(width > 0 && height > 0)
   {
-    if(width * height > (int)image.size())
+    if(width * height > image.size())
       image.resize(width * height);
 
     Color * pCol = &image.front();

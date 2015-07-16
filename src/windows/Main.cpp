@@ -251,13 +251,16 @@ void DrawTextTips(const HDC hdc)
 
 void ProceedControl()
 {
-  static DWORD prevTicks = GetTickCount();
-  const DWORD curTicks = GetTickCount();
-  if (int(curTicks - prevTicks) > 20)
-  {
-    render->camera.proceedControl(controlFlags, int(curTicks - prevTicks));
-    prevTicks = curTicks;
-  }
+  static LARGE_INTEGER prevCounter, counter;
+  static const int prevSuccess = QueryPerformanceCounter(&prevCounter);
+
+  float timePassedSec = 0;
+
+  if (initPerfSuccess && prevSuccess && QueryPerformanceCounter(&counter))
+    timePassedSec = float(counter.QuadPart - prevCounter.QuadPart) / perfFreq.QuadPart;
+
+  render->camera.proceedControl(controlFlags, timePassedSec);
+  prevCounter = counter;
 }
 
 void RenderImage()

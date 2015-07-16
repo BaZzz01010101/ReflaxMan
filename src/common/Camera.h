@@ -57,7 +57,7 @@ public:
   Camera & operator =(const Camera & camera);
   ~Camera();
 
-  void proceedControl(const int controlFlags, const int timePassedMs);
+  void proceedControl(const int controlFlags, const float timePassedSec);
   bool inMotion() const;
 };
 
