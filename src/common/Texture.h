@@ -5,13 +5,13 @@
 class Texture
 {
 private:
-  int width;
-  int height;
+  unsigned int width;
+  unsigned int height;
   std::vector<ARGB> colorBuf;
 
 public:
   Texture();
-  Texture(const int width, const int height);
+  Texture(const unsigned int width, const unsigned int height);
   Texture(const char* filename);
   ~Texture();
 
@@ -23,12 +23,12 @@ public:
   bool saveToBMPFile(const char* fileName) const;
 
   ARGB * getColorBuffer() const;
-  Color getTexelColor(const int x, const int y) const;
+  Color getTexelColor(const unsigned int x, const unsigned int y) const;
   Color getTexelColor(const float u, const float v) const;
 
-  void resize(int width, int height);
+  void resize(unsigned int width, unsigned int height);
   void clear(ARGB bkColor);
-  inline int getWidth() const { return width; };
-  inline int getHeight() const { return height; };
+  inline unsigned int getWidth() const { return width; };
+  inline unsigned int getHeight() const { return height; };
 };
 

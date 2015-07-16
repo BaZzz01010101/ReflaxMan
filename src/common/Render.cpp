@@ -5,8 +5,9 @@
 Render::Render(const char * exePath)
 {
   additiveCounter = 0;
-  scanLinesRendered = 0;
   inProgress = false;
+  curx = 0;
+  cury = 0;
 
   loadScene(exePath);
 }
@@ -48,7 +49,7 @@ void Render::loadScene(const char * exePath)
   tr2->setTexture(planeTexture, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f);
 }
 
-void Render::setImageSize(int width, int height)
+void Render::setImageSize(unsigned int width, unsigned int height)
 {
   assert(width > 0);
   assert(height > 0);
@@ -67,8 +68,9 @@ void Render::setImageSize(int width, int height)
     imageWidth = width;
     imageHeight = height;
     additiveCounter = 0;
-    scanLinesRendered = 0;
     inProgress = false;
+    curx = 0;
+    cury = 0;
   }
 }
 
@@ -114,8 +116,9 @@ void Render::renderBegin(int reflectNum, int sampleNum, bool additive)
   renderReflectNum = reflectNum;
   renderSampleNum = sampleNum;
   renderAdditive = additive;
-  scanLinesRendered = 0;
   inProgress = true;
+  curx = 0;
+  cury = 0;
   renderCameraView = camera.view;
   renderCameraEye = camera.eye;
 
@@ -125,79 +128,94 @@ void Render::renderBegin(int reflectNum, int sampleNum, bool additive)
     additiveCounter = 0;
 }
 
-int Render::renderNext(int scanLines)
+bool Render::renderNext(unsigned int pixels)
 {
-  assert(scanLines > 0);
+  assert(pixels);
   assert(inProgress);
+  assert(curx < imageWidth);
+  assert(cury < imageHeight);
 
-  if (!inProgress)
-    return -1;
+  if (!pixels || !inProgress || curx >= imageWidth || cury >= imageHeight)
+    return false;
+  
+  const Vector3 origin = renderCameraEye;
+  const float sqRenderSampleNum = float(renderSampleNum * renderSampleNum);
+  const float rz = float(imageWidth) / 2.0f / tanf(camera.fov / 2.0f);
+  const float imageWidthHalf = imageWidth / 2.0f;
+  const float imageHeightHalf = imageHeight / 2.0f;
 
-  if (scanLines > 0)
+  while (pixels > 0)
   {
-    const Vector3 origin = renderCameraEye;
-    const float sqRenderSampleNum = float(renderSampleNum * renderSampleNum);
-    const float rz = float(imageWidth) / 2.0f / tanf(camera.fov / 2.0f);
-    const float imageWidthHalf = imageWidth / 2.0f;
-    const float imageHeightHalf = imageHeight / 2.0f;
-    const int endScanLine = scanLinesRendered + min(scanLines, imageHeight - scanLinesRendered);
+    const float rx = float(curx) - imageWidthHalf;
+    const float ry = float(cury) - imageHeightHalf;
+    Vector3 ray(rx, ry, rz);
 
-    for (int y = scanLinesRendered; y < endScanLine; y++)
-    for (int x = 0; x < imageWidth; x++)
+    if (renderSampleNum < 0)
     {
-      const float rx = float(x) - imageWidthHalf;
-      const float ry = float(y) - imageHeightHalf;
-      Vector3 ray(rx, ry, rz);
+      unsigned int absRenderSampleNum = abs(renderSampleNum);
 
-      if (renderSampleNum < 0)
+      if (!(curx % absRenderSampleNum || cury % absRenderSampleNum))
       {
-        if (!(x % renderSampleNum || y % renderSampleNum))
-        {
-          ray = renderCameraView * ray;
-          const Color tracedColor = scene.trace(origin, ray, renderReflectNum);
-          const int endQx = min(imageWidth, x + abs(renderSampleNum));
-          const int endQy = min(imageHeight, y + abs(renderSampleNum));
+        ray = renderCameraView * ray;
+        const Color tracedColor = scene.trace(origin, ray, renderReflectNum);
+        const int endQx = min(imageWidth, curx + absRenderSampleNum);
+        const int endQy = min(imageHeight, cury + absRenderSampleNum);
 
-          for (int qx = x; qx < endQx; qx++)
-          for (int qy = y; qy < endQy; qy++)
-            image[qx + qy * imageWidth] = tracedColor;
-        }
-      }
-      else if (renderSampleNum > 0)
-      {
-        Color finColor;
-        const float rndx = renderAdditive ? float(fastrand()) / FAST_RAND_MAX : 0;
-        const float rndy = renderAdditive ? float(fastrand()) / FAST_RAND_MAX : 0;
-        //const Vector3 randVec = renderAdditive ? Vector3::randomInsideSphere(0.5f / renderSampleNum) : Vector3(0, 0, 0);
-        finColor = Color(0.0f, 0.0f, 0.0f);
-
-        for (int ssx = 0; ssx < renderSampleNum; ssx++)
-        for (int ssy = 0; ssy < renderSampleNum; ssy++)
-        {
-          Vector3 ray = Vector3(rx + float(ssx) / renderSampleNum + rndx, ry + float(ssy) / renderSampleNum + rndy, rz);
-          ray = renderCameraView * ray;
-          finColor += scene.trace(origin, ray, renderReflectNum);
-        }
-
-        finColor /= sqRenderSampleNum;
-
-        if (additiveCounter > 1)
-          image[x + y * imageWidth] += finColor;
-        else
-          image[x + y * imageWidth] = finColor;
-
+        for (int qx = curx; qx < endQx; qx++)
+        for (int qy = cury; qy < endQy; qy++)
+          image[qx + qy * imageWidth] = tracedColor;
       }
     }
+    else if (renderSampleNum > 0)
+    {
+      Color finColor;
+      const float rndx = renderAdditive ? float(fastrand()) / FAST_RAND_MAX : 0;
+      const float rndy = renderAdditive ? float(fastrand()) / FAST_RAND_MAX : 0;
+      finColor = Color(0.0f, 0.0f, 0.0f);
 
-    scanLinesRendered += scanLines;
-    inProgress = (scanLinesRendered < imageHeight);
+      for (int ssx = 0; ssx < renderSampleNum; ssx++)
+      for (int ssy = 0; ssy < renderSampleNum; ssy++)
+      {
+        Vector3 ray = Vector3(rx + float(ssx) / renderSampleNum + rndx, ry + float(ssy) / renderSampleNum + rndy, rz);
+        ray = renderCameraView * ray;
+        finColor += scene.trace(origin, ray, renderReflectNum);
+      }
+
+      finColor /= sqRenderSampleNum;
+
+      if (additiveCounter > 1)
+        image[curx + cury * imageWidth] += finColor;
+      else
+        image[curx + cury * imageWidth] = finColor;
+
+    }
+
+    pixels--;
+    curx++;
+
+    if (curx == imageWidth)
+    {
+      curx = 0;
+      cury++;
+    }
+
+    if (cury == imageHeight)
+    {
+      inProgress = false;
+      break;
+    }
   }
 
-  return imageHeight - scanLinesRendered;
+  return inProgress;
 }
 
 void Render::renderAll(int reflectNum, int sampleNum, bool additive)
 {
   renderBegin(reflectNum, sampleNum, additive);
   renderNext(imageHeight);
+}
+
+float Render::getRenderProgress() const
+{ 
+  return float(curx + cury * imageWidth) * 100.0f / imageWidth / imageHeight;
 }

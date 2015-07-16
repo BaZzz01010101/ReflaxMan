@@ -9,7 +9,7 @@ Texture::Texture()
   height = 0;
 }
 
-Texture::Texture(const int width, const int height)
+Texture::Texture(const unsigned int width, const unsigned int height)
 {
   resize(width, height);
 }
@@ -52,8 +52,8 @@ bool Texture::loadFromTGAFile(const char * fileName)
         colorBuf.resize(pixelCount);
         ARGB * pColor = getColorBuffer();
         const ARGB * const pEndColor = pColor + pixelCount;
-        const int pixelSize = bpp / 8;
-        const int bufSize = pixelSize * 32768;
+        const unsigned int pixelSize = bpp / 8;
+        const unsigned int bufSize = pixelSize * 32768;
         uint8_t * const fileBuffer = new uint8_t[bufSize];
         uint8_t * pBuf = fileBuffer + bufSize;
         const uint8_t * const pEndBuf = fileBuffer + bufSize;
@@ -62,7 +62,7 @@ bool Texture::loadFromTGAFile(const char * fileName)
         {
           if (pBuf == pEndBuf)
           {
-            const int pixelsLeft = pEndColor - pColor;
+            const unsigned int pixelsLeft = (unsigned int)(pEndColor - pColor);
 
             if (!fread((void *)fileBuffer, min(pixelSize * pixelsLeft, bufSize), 1, fh))
               break;
@@ -208,7 +208,7 @@ ARGB * Texture::getColorBuffer() const
   return (ARGB *) & colorBuf.front();
 }
 
-Color Texture::getTexelColor(const int x, const int y) const
+Color Texture::getTexelColor(const unsigned int x, const unsigned int y) const
 {
   assert(x >= 0);
   assert(x < width);
@@ -242,8 +242,8 @@ Color Texture::getTexelColor(const float u, const float v) const
   {
     const float fx = clamp(u, 0.0f, 1.0f - FLT_EPSILON) * width;
     const float fy = clamp(v, 0.0f, 1.0f - FLT_EPSILON) * height;
-    const int x = int(fx);
-    const int y = int(fy);
+    const unsigned int x = (unsigned int)fx;
+    const unsigned int y = (unsigned int)fy;
 
     // bilinear filtering
     if (x < width - 1 && y < height - 1)
@@ -261,11 +261,11 @@ Color Texture::getTexelColor(const float u, const float v) const
       return (color00 * uOpFrac + color10 * uFrac) * vOpFrac + (color01 * uOpFrac + color11 * uFrac) * vFrac;
     }
     else
-      return getTexelColor(int(fx), int(fy));
+      return getTexelColor((unsigned int)fx, (unsigned int)fy);
   }
 }
 
-void Texture::resize(int width, int height)
+void Texture::resize(unsigned int width, unsigned int height)
 {
   assert(width >= 0);
   assert(height >= 0);
