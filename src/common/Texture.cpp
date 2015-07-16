@@ -47,20 +47,44 @@ bool Texture::loadFromTGAFile(const char * fileName)
         &&
         (bpp == 24 || bpp == 32))
       {
-        int pixelCount = width * height;
+        const int pixelCount = width * height;
         colorBuf.resize(pixelCount);
         ARGB * pColor = getColorBuffer();
+        const ARGB * const pEndColor = pColor + pixelCount;
         const int pixelSize = bpp / 8;
+        const int bufSize = pixelSize * 32768;
+        uint8_t * const fileBuffer = new uint8_t[bufSize];
+        uint8_t * pBuf = fileBuffer + bufSize;
+        const uint8_t * const pEndBuf = fileBuffer + bufSize;
 
-        while (pixelCount > 0)
+        while (pColor < pEndColor)
         {
-          if (!fread((void *)pColor++, pixelSize, 1, fh))
-            break;
+          if (pBuf == pEndBuf)
+          {
+            const int pixelsLeft = pEndColor - pColor;
 
-          pixelCount--;
+            if (!fread((void *)fileBuffer, min(pixelSize * pixelsLeft, bufSize), 1, fh))
+              break;
+
+            pBuf = fileBuffer;
+          }
+
+          switch (bpp)
+          {
+          case 24:
+            *pColor++ = MAKEARGB(0xFF, *(pBuf + 2), *(pBuf + 1), *pBuf);
+            break;
+          case 32:
+            *pColor++ = MAKEARGB(*(pBuf + 3), *(pBuf + 2), *(pBuf + 1), *pBuf);
+            break;
+          }
+
+          pBuf += pixelSize;
         }
 
-        if (!pixelCount)
+        delete[] fileBuffer;
+
+        if (pColor == pEndColor)
           retVal = true;
       }
     }

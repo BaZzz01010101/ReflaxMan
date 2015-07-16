@@ -186,7 +186,6 @@
     <ClInclude Include="..\src\common\Vertex.h" />
     <ClInclude Include="..\src\common\defaults.h" />
     <ClInclude Include="..\src\windows\stdafx.h" />
-    <ClInclude Include="..\src\windows\targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\common\trace_math.cpp" />

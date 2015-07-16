@@ -5,13 +5,11 @@
 
 #pragma once
 
-#include "targetver.h"
-
 #include <stdio.h>
 #include <tchar.h>
 #include <assert.h>
+#include <math.h>
 #include <sstream>
 #include <string>
-#include <cmath>
 
 // TODO: reference additional headers your program requires here

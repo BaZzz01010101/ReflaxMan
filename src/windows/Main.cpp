@@ -58,8 +58,11 @@ void ProceedControl()
 {
   static DWORD prevTicks = GetTickCount();
   const DWORD curTicks = GetTickCount();
-  render->camera.proceedControl(controlFlags, int(curTicks - prevTicks));
-  prevTicks = curTicks;
+  if (int(curTicks - prevTicks) > 20)
+  {
+    render->camera.proceedControl(controlFlags, int(curTicks - prevTicks));
+    prevTicks = curTicks;
+  }
 }
 
 void DrawScreenshotStats(const HDC hdc)
@@ -131,10 +134,10 @@ void DrawSceneStats(const HDC hdc)
   else
     print(hdc, x, y, "Frame time: %.03f s", frameTime);
 
-  y += tm.tmHeight;
+  y += lineHeight;
   print(hdc, x, y, "Blended frames : %i", render->additiveCounter);
 
-  y += tm.tmHeight * 2;
+  y += lineHeight * 2;
   print(hdc, x, y, "WSAD : moving");
 
   y += lineHeight;
@@ -198,24 +201,125 @@ void DrawImage(const HWND hWnd, const HDC hdc)
       }
     }
 
-    for (int y = 0; y < bmHeight; ++y)
-    for (int x = 0; x < bmWidth; ++x)
-      pixels[x + y * bmWidth] = render->imagePixel(x, y).argb();
-    
+    if (pixels)
+    {
+      for (int y = 0; y < bmHeight; ++y)
+      for (int x = 0; x < bmWidth; ++x)
+        pixels[x + y * bmWidth] = render->imagePixel(x, y).argb();
+    }
+
     imageReady = false;
   }
 
   if (memDC && pixels)
   {
     RECT clientRect;
-    if (!GetClientRect(hWnd, &clientRect))
-      clientRect.left = clientRect.right = clientRect.top = clientRect.bottom = 0;
+    if (GetClientRect(hWnd, &clientRect) && clientRect.right && clientRect.bottom)
+    {
+      float clientAspect = float(clientRect.right) / clientRect.bottom;
+      const int yGap = int(bmWidth / clientAspect) - bmHeight;
+      SetStretchBltMode(hdc, HALFTONE);
+      StretchBlt(hdc, 0, 0, clientRect.right, clientRect.bottom, memDC, 0, -yGap / 2, bmWidth, bmHeight + yGap, SRCCOPY);
+    }
+  }
+}
 
-    SetStretchBltMode(hdc, HALFTONE);
-    float clientAspect = float(clientRect.right) / clientRect.bottom;
-    const int yGap = int(bmWidth / clientAspect) - bmHeight;
+void ScrnshotSavingPulse()
+{
+  if (scrnshotProgress < 0)
+  {
+    FILETIME ft;
+    const int bufSize = 256;
+    char name[bufSize];
+    GetSystemTimeAsFileTime(&ft);
 
-    StretchBlt(hdc, 0, 0, clientRect.right, clientRect.bottom, memDC, 0, -yGap / 2, bmWidth, bmHeight + yGap, SRCCOPY);
+#ifdef _MSC_VER
+    _snprintf(name, bufSize, "scrnshoot_%08X%08X.bmp", ft.dwHighDateTime, ft.dwLowDateTime);
+#else
+    snprintf(name, bufSize, "scrnshoot_%08X%08X.bmp", ft.dwHighDateTime, ft.dwLowDateTime);
+#endif
+
+    scrnshotFileName = exeFullPath;
+    scrnshotFileName += name;
+
+    render->setImageSize(Default::scrnshotWidth, Default::scrnshotHeight);
+    scrnshotStartTicks = GetTickCount();
+    render->renderBegin(Default::scrnshotRefections, Default::scrnshotSamples, false);
+  }
+
+  if (!scrnshotCancelConfirmed && render->renderNext(1))
+  {
+    scrnshotProgress = render->getRenderProgress();
+    InvalidateRect(hWnd, NULL, false);
+  }
+  else
+  {
+    if (!scrnshotCancelConfirmed)
+    {
+      Texture imageTexture(render->imageWidth, render->imageHeight);
+      render->copyImage(imageTexture);
+      imageTexture.saveToFile(scrnshotFileName.c_str());
+    }
+    scrnshotProgress = -1;
+    scrnshotSaving = false;
+    scrnshotCancelConfirmed = false;
+
+    RECT clientRect;
+    if (GetClientRect(hWnd, &clientRect) && clientRect.right && clientRect.bottom)
+      render->setImageSize(clientRect.right, clientRect.bottom);
+    else
+      render->setImageSize(1, 1);
+  }
+}
+
+void ImageRenderPulse()
+{
+  static int motionDynSamples = Default::motionMinSamples;
+  static int prevSamples = 0;
+  static bool prevInMotion = false;
+
+  const bool inMotion = controlFlags || render->camera.inMotion();
+
+  if (!imageReady)
+  {
+    if (!render->inProgress || (inMotion && motionDynSamples != prevSamples))
+    {
+      if (inMotion)
+      {
+        if (frameTime > Default::maxMotionFrameTime)
+          motionDynSamples = max(motionDynSamples - 1, Default::motionMaxSamples);
+        else if (frameTime < Default::minMotionFrameTime)
+          motionDynSamples = min(motionDynSamples + 1, Default::motionMinSamples);
+      }
+
+      const int reflNum = (inMotion || prevInMotion) ? Default::motionReflections : Default::staticReflections;
+      const int sampleNum = (inMotion || prevInMotion) ? motionDynSamples : Default::staticSamples;
+
+      render->renderBegin(reflNum, sampleNum, !(inMotion || prevInMotion));
+      prevSamples = sampleNum;
+      prevInMotion = inMotion;
+    }
+
+    LARGE_INTEGER cnt0, cnt1;
+    const bool cnt0Success = QueryPerformanceCounter(&cnt0) != 0;
+
+    const int linesLeft = render->renderNext(1);
+
+    if (initPerfSuccess &&
+      cnt0Success &&
+      QueryPerformanceCounter(&cnt1))
+    {
+      frameChunkTime += float(cnt1.QuadPart - cnt0.QuadPart) / perfFreq.QuadPart;
+    }
+
+    if (!linesLeft)
+    {
+      frameTime = frameChunkTime;
+      frameChunkTime = 0;
+      if (!IsIconic(hWnd))
+        imageReady = true;
+      InvalidateRect(hWnd, NULL, false);
+    }
   }
 }
 
@@ -393,105 +497,6 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
   return 0;
 }
 
-void ScrnshotSavingPulse()
-{
-  if (scrnshotProgress < 0)
-  {
-    FILETIME ft;
-    const int bufSize = 256;
-    char name[bufSize];
-    GetSystemTimeAsFileTime(&ft);
-
-    #ifdef _MSC_VER
-      _snprintf(name, bufSize, "scrnshoot_%08X%08X.bmp", ft.dwHighDateTime, ft.dwLowDateTime);
-    #else
-      snprintf(name, bufSize, "scrnshoot_%08X%08X.bmp", ft.dwHighDateTime, ft.dwLowDateTime);
-    #endif
-
-    scrnshotFileName = exeFullPath;
-    scrnshotFileName += name;
-
-    render->setImageSize(Default::scrnshotWidth, Default::scrnshotHeight);
-    scrnshotStartTicks = GetTickCount();
-    render->renderBegin(Default::scrnshotRefections, Default::scrnshotSamples, false);
-  }
-
-  if (!scrnshotCancelConfirmed && render->renderNext(1))
-  {
-    scrnshotProgress = render->getRenderProgress();
-    InvalidateRect(hWnd, NULL, false);
-  }
-  else
-  {
-    if (!scrnshotCancelConfirmed)
-    {
-      Texture imageTexture(render->imageWidth, render->imageHeight);
-      render->copyImage(imageTexture);
-      imageTexture.saveToFile(scrnshotFileName.c_str());
-    }
-    scrnshotProgress = -1;
-    scrnshotSaving = false;
-    scrnshotCancelConfirmed = false;
-
-    RECT clientRect;
-    if (GetClientRect(hWnd, &clientRect) && clientRect.right && clientRect.bottom)
-      render->setImageSize(clientRect.right, clientRect.bottom);
-    else
-      render->setImageSize(1, 1);
-  }
-}
-
-void ImageRenderPulse()
-{
-  static int motionDynSamples = Default::motionMinSamples;
-  static int prevSamples = 0;
-  static bool prevInMotion = false;
-
-  const bool inMotion = controlFlags || render->camera.inMotion();
-
-  if (!imageReady)
-  {
-    if (!render->inProgress || (inMotion && motionDynSamples != prevSamples))
-    {
-      if (inMotion)
-      {
-        if (frameTime > Default::maxMotionFrameTime)
-          motionDynSamples = max(motionDynSamples - 1, Default::motionMaxSamples);
-        else if (frameTime < Default::minMotionFrameTime)
-          motionDynSamples = min(motionDynSamples + 1, Default::motionMinSamples);
-      }
-
-      const int reflNum = (inMotion || prevInMotion) ? Default::motionReflections : Default::staticReflections;
-      const int sampleNum = (inMotion || prevInMotion) ? motionDynSamples : Default::staticSamples;
-
-      render->renderBegin(reflNum, sampleNum, !(inMotion || prevInMotion));
-      prevSamples = sampleNum;
-      prevInMotion = inMotion;
-    }
-
-    LARGE_INTEGER cnt0, cnt1;
-    const bool cnt0Success = QueryPerformanceCounter(&cnt0) != 0;
-
-    const int linesLeft = render->renderNext(1);
-
-    if (initPerfSuccess &&
-      cnt0Success &&
-      QueryPerformanceCounter(&cnt1))
-    {
-      frameChunkTime += float(cnt1.QuadPart - cnt0.QuadPart) / perfFreq.QuadPart;
-    }
-
-    if (!linesLeft)
-    {
-      frameTime = frameChunkTime;
-      frameChunkTime = 0;
-      if (!IsIconic(hWnd))
-        imageReady = true;
-      InvalidateRect(hWnd, NULL, false);
-    }
-  }
-}
-
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
   #ifdef _MSC_VER
@@ -537,7 +542,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
     while (!quitMessage)
     {
-      if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+      while (!quitMessage && PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
       {
         TranslateMessage(&msg);
         DispatchMessage(&msg);

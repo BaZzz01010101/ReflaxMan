@@ -81,9 +81,6 @@
     <ClInclude Include="..\src\windows\stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\windows\targetver.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\common\image_headers.h">
       <Filter>Header Files\common</Filter>
     </ClInclude>
