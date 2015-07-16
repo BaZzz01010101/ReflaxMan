@@ -43,6 +43,9 @@ bool scrnshotCancelRequested = false;
 bool scrnshotCancelConfirmed = false;
 bool quitMessage = false;
 int controlFlags = 0;
+const int defaultScreenshotWidth = 1280;
+const int defaultScreenshotHeight = 720;
+const int defaultScreenshotSamples = 16;
 
 void print(Drawable dr, const int x, const int y, const char* format, ...)
 {
@@ -110,7 +113,7 @@ void ProceedControl()
   {
     int ms = clock_timediff_ms(ts, prevTs);
 
-    if(ms > 20)
+    if(ms > 1)
     {
       render->camera.proceedControl(controlFlags, ms);
       prevTs = ts;
@@ -129,10 +132,10 @@ void DrawScreenshotStats(Drawable dr)
   print(dr, x, y, scrnshotFileName.c_str());
 
   y += lineHeight;
-  print(dr, x, y, "Resolution: %ix%i", Default::scrnshotWidth, Default::scrnshotHeight);
+  print(dr, x, y, "Resolution: %ix%i", defaultScreenshotWidth, defaultScreenshotHeight);
 
   y += lineHeight;
-  print(dr, x, y, "SSAA: %ix", Default::scrnshotSamples);
+  print(dr, x, y, "SSAA: %ix", defaultScreenshotSamples);
 
   y += lineHeight * 2;
   print(dr, x, y, "Progress: %.2f %%", scrnshotProgress);
@@ -271,14 +274,14 @@ void ScrnshotSavingPulse()
       snprintf(name, bufSize, "scrnshoot_%08X%08X.bmp", highTime, lowTime);
       scrnshotFileName = exeFullPath + name;
 
-      render->setImageSize(Default::scrnshotWidth, Default::scrnshotHeight);
+      render->setImageSize(defaultScreenshotWidth, defaultScreenshotHeight);
 
       if(!clock_gettime(CLOCK_MONOTONIC, &scrnshotStartTs))
-        render->renderBegin(Default::scrnshotRefections, Default::scrnshotSamples, false);
+        render->renderBegin(Default::scrnshotRefections, defaultScreenshotSamples, false);
     }
   }
 
-  if (!scrnshotCancelConfirmed && render->renderNext(1))
+  if (!scrnshotCancelConfirmed && render->renderNext(render->imageWidth / defaultScreenshotSamples))
   {
     scrnshotProgress = render->getRenderProgress();
     XClearArea(dsp, win, 0, 0, 0, 0, true);
@@ -310,7 +313,7 @@ void ImageRenderPulse()
   static bool prevInMotion = false;
   const bool inMotion = controlFlags || render->camera.inMotion();
 
-  if (!imageReady)
+  if (!imageReady && render->imageWidth && render->imageHeight)
   {
     if (!render->inProgress || (inMotion && motionDynSamples != prevSamples))
     {
@@ -333,12 +336,12 @@ void ImageRenderPulse()
     timespec ts0, ts1;
     if(!clock_gettime(CLOCK_MONOTONIC, &ts0))
     {
-      const int linesLeft = render->renderNext(1);
+      const bool isComplete = !render->renderNext(render->imageWidth);
 
       if (!clock_gettime(CLOCK_MONOTONIC, &ts1))
         frameChunkTime += float(clock_timediff_mcs(ts1, ts0)) / 1000000.0f;
 
-      if (!linesLeft)
+      if (isComplete)
       {
         frameTime = frameChunkTime;
         frameChunkTime = 0;
