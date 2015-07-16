@@ -52,6 +52,7 @@ void Render::setImageSize(int width, int height)
 {
   assert(width > 0);
   assert(height > 0);
+
   if(width > 0 && height > 0)
   {
     if(width * height > (int)image.size())
@@ -98,9 +99,9 @@ Color Render::imagePixel(int x, int y) const
   assert(y >= 0);
 
   if (x >= 0 && y >= 0)
-    return additiveCounter > 1 ?
-    image[x + y * imageWidth] / float(additiveCounter) :
-    image[x + y * imageWidth];
+    return additiveCounter > 1 ? 
+           image[x + y * imageWidth] / float(additiveCounter) : 
+           image[x + y * imageWidth];
   else
     return Color(0, 0, 0);
 }
@@ -126,67 +127,71 @@ void Render::renderBegin(int reflectNum, int sampleNum, bool additive)
 
 int Render::renderNext(int scanLines)
 {
+  assert(scanLines > 0);
   assert(inProgress);
 
   if (!inProgress)
     return -1;
 
-  const Vector3 origin = renderCameraEye;
-  const float sqRenderSampleNum = float(renderSampleNum * renderSampleNum);
-  const float rz = float(imageWidth) / 2.0f / tanf(camera.fov / 2.0f);
-  const float imageWidthHalf = imageWidth / 2.0f;
-  const float imageHeightHalf = imageHeight / 2.0f;
-  const int endScanLine = scanLinesRendered + min(scanLines, imageHeight - scanLinesRendered);
-
-  for (int y = scanLinesRendered; y < endScanLine; y++)
-  for (int x = 0; x < imageWidth; x++)
+  if (scanLines > 0)
   {
-    const float rx = float(x) - imageWidthHalf;
-    const float ry = float(y) - imageHeightHalf;
-    Vector3 ray(rx, ry, rz);
+    const Vector3 origin = renderCameraEye;
+    const float sqRenderSampleNum = float(renderSampleNum * renderSampleNum);
+    const float rz = float(imageWidth) / 2.0f / tanf(camera.fov / 2.0f);
+    const float imageWidthHalf = imageWidth / 2.0f;
+    const float imageHeightHalf = imageHeight / 2.0f;
+    const int endScanLine = scanLinesRendered + min(scanLines, imageHeight - scanLinesRendered);
 
-    if (renderSampleNum < 0)
+    for (int y = scanLinesRendered; y < endScanLine; y++)
+    for (int x = 0; x < imageWidth; x++)
     {
-      if (!(x % renderSampleNum || y % renderSampleNum))
-      {
-        ray = renderCameraView * ray;
-        const Color tracedColor = scene.trace(origin, ray, renderReflectNum);
-        const int endQx = min(imageWidth, x + abs(renderSampleNum));
-        const int endQy = min(imageHeight, y + abs(renderSampleNum));
+      const float rx = float(x) - imageWidthHalf;
+      const float ry = float(y) - imageHeightHalf;
+      Vector3 ray(rx, ry, rz);
 
-        for (int qx = x; qx < endQx; qx++)
-        for (int qy = y; qy < endQy; qy++)
-          image[qx + qy * imageWidth] = tracedColor;
+      if (renderSampleNum < 0)
+      {
+        if (!(x % renderSampleNum || y % renderSampleNum))
+        {
+          ray = renderCameraView * ray;
+          const Color tracedColor = scene.trace(origin, ray, renderReflectNum);
+          const int endQx = min(imageWidth, x + abs(renderSampleNum));
+          const int endQy = min(imageHeight, y + abs(renderSampleNum));
+
+          for (int qx = x; qx < endQx; qx++)
+          for (int qy = y; qy < endQy; qy++)
+            image[qx + qy * imageWidth] = tracedColor;
+        }
+      }
+      else if (renderSampleNum > 0)
+      {
+        Color finColor;
+        const float rndx = renderAdditive ? float(fastrand()) / FAST_RAND_MAX : 0;
+        const float rndy = renderAdditive ? float(fastrand()) / FAST_RAND_MAX : 0;
+        //const Vector3 randVec = renderAdditive ? Vector3::randomInsideSphere(0.5f / renderSampleNum) : Vector3(0, 0, 0);
+        finColor = Color(0.0f, 0.0f, 0.0f);
+
+        for (int ssx = 0; ssx < renderSampleNum; ssx++)
+        for (int ssy = 0; ssy < renderSampleNum; ssy++)
+        {
+          Vector3 ray = Vector3(rx + float(ssx) / renderSampleNum + rndx, ry + float(ssy) / renderSampleNum + rndy, rz);
+          ray = renderCameraView * ray;
+          finColor += scene.trace(origin, ray, renderReflectNum);
+        }
+
+        finColor /= sqRenderSampleNum;
+
+        if (additiveCounter > 1)
+          image[x + y * imageWidth] += finColor;
+        else
+          image[x + y * imageWidth] = finColor;
+
       }
     }
-    else if (renderSampleNum > 0)
-    {
-      Color finColor;
-      const float rndx = renderAdditive ? float(fastrand()) / FAST_RAND_MAX : 0;
-      const float rndy = renderAdditive ? float(fastrand()) / FAST_RAND_MAX : 0;
-      //const Vector3 randVec = renderAdditive ? Vector3::randomInsideSphere(0.5f / renderSampleNum) : Vector3(0, 0, 0);
-      finColor = Color(0.0f, 0.0f, 0.0f);
 
-      for (int ssx = 0; ssx < renderSampleNum; ssx++)
-      for (int ssy = 0; ssy < renderSampleNum; ssy++)
-      {
-        Vector3 ray = Vector3(rx + float(ssx) / renderSampleNum + rndx, ry + float(ssy) / renderSampleNum + rndy, rz);
-        ray = renderCameraView * ray;
-        finColor += scene.trace(origin, ray, renderReflectNum);
-      }
-
-      finColor /= sqRenderSampleNum;
-
-      if (additiveCounter > 1)
-        image[x + y * imageWidth] += finColor;
-      else
-        image[x + y * imageWidth] = finColor;
-
-    }
+    scanLinesRendered += scanLines;
+    inProgress = (scanLinesRendered < imageHeight);
   }
-
-  scanLinesRendered += scanLines;
-  inProgress = (scanLinesRendered < imageHeight);
 
   return imageHeight - scanLinesRendered;
 }

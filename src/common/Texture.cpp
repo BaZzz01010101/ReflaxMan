@@ -30,6 +30,7 @@ bool Texture::loadFromTGAFile(const char * fileName)
 {
   bool retVal = false;
   FILE * fh = fopen(fileName, "rb");
+
   if (fh)
   {
     TGAFileHeader header;
@@ -214,13 +215,14 @@ Color Texture::getTexelColor(const int x, const int y) const
   assert(y >= 0);
   assert(y < height);
 
-  // return black texture if out of bounds or gray chess if texture is empty
+  // return black Color if x or y out of bounds or gray chess pixels if texture is empty
+
   if (x < 0 || x >= width || y < 0 || y >= height)
     return Color(0, 0, 0);
   else if(colorBuf.empty())
     return (((x * 50 / width) % 2) ^ ((y * 50 / width) % 2)) ? Color(0.5f, 0.5f, 0.5f) : Color(0.75f, 0.75f, 0.75f);
-
-  return Color(colorBuf[clamp(x, 0, width - 1) + width * clamp(y, 0, height - 1)]);
+  else 
+    return Color(colorBuf[clamp(x, 0, width - 1) + width * clamp(y, 0, height - 1)]);
 }
 
 Color Texture::getTexelColor(const float u, const float v) const
@@ -230,38 +232,47 @@ Color Texture::getTexelColor(const float u, const float v) const
   assert(v >= 0.0f);
   assert(v <= 1.0f);
 
-  // return black texture if out of bounds or gray chess if texture is empty
+  // return black Color if x or y out of bounds or gray chess pixels if texture is empty
+
   if (u < 0.0f || u > 1.0f || v < 0.0f || v > 1.0f)
     return Color(0.0f, 0.0f, 0.0f);
   else if (colorBuf.empty())
-      return ((int(u * 50) % 2) ^ (int(v * 50) % 2)) ? Color(0.5f, 0.5f, 0.5f) : Color(0.75f, 0.75f, 0.75f);
-
-  const float fx = clamp(u, 0.0f, 1.0f - FLT_EPSILON) * width;
-  const float fy = clamp(v, 0.0f, 1.0f - FLT_EPSILON) * height;
-  const int x = int(fx);
-  const int y = int(fy);
-
-  // bilinear filtering
-  if (x < width - 1 && y < height - 1)
-  {
-    const Color color00 = getTexelColor(x, y);
-    const Color color01 = getTexelColor(x, y + 1);
-    const Color color10 = getTexelColor(x + 1, y);
-    const Color color11 = getTexelColor(x + 1, y + 1);
-
-    const float uFrac = fx - floor(fx);
-    const float vFrac = fy - floor(fy);
-    const float uOpFrac = 1 - uFrac;
-    const float vOpFrac = 1 - vFrac;
-
-    return (color00 * uOpFrac + color10 * uFrac) * vOpFrac + (color01 * uOpFrac + color11 * uFrac) * vFrac;
-  }
+    return ((int(u * 50) % 2) ^ (int(v * 50) % 2)) ? Color(0.5f, 0.5f, 0.5f) : Color(0.75f, 0.75f, 0.75f);
   else
-    return getTexelColor(int(fx), int(fy));
+  {
+    const float fx = clamp(u, 0.0f, 1.0f - FLT_EPSILON) * width;
+    const float fy = clamp(v, 0.0f, 1.0f - FLT_EPSILON) * height;
+    const int x = int(fx);
+    const int y = int(fy);
+
+    // bilinear filtering
+    if (x < width - 1 && y < height - 1)
+    {
+      const Color color00 = getTexelColor(x, y);
+      const Color color01 = getTexelColor(x, y + 1);
+      const Color color10 = getTexelColor(x + 1, y);
+      const Color color11 = getTexelColor(x + 1, y + 1);
+
+      const float uFrac = fx - floor(fx);
+      const float vFrac = fy - floor(fy);
+      const float uOpFrac = 1 - uFrac;
+      const float vOpFrac = 1 - vFrac;
+
+      return (color00 * uOpFrac + color10 * uFrac) * vOpFrac + (color01 * uOpFrac + color11 * uFrac) * vFrac;
+    }
+    else
+      return getTexelColor(int(fx), int(fy));
+  }
 }
 
-void Texture::resize(const int width, const int height)
+void Texture::resize(int width, int height)
 {
+  assert(width >= 0);
+  assert(height >= 0);
+
+  if (width < 0 || height < 0)
+    width = height = 0;
+
   this->width = width;
   this->height = height;
   colorBuf.resize(width * height);

@@ -7,8 +7,13 @@ Sphere::Sphere()
 
 }
 
-Sphere::Sphere(const Vector3 & center, const float radius, const Material & material) 
+Sphere::Sphere(const Vector3 & center, float radius, const Material & material) 
 {
+  assert(radius > VERY_SMALL_NUMBER);
+
+  if (radius <= VERY_SMALL_NUMBER)
+    radius = VERY_SMALL_NUMBER;
+
   this->center = center;
   this->radius = radius;
   this->sqRadius = radius * radius;

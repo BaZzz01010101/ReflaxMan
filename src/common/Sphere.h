@@ -13,7 +13,7 @@ private:
 
 public:
   Sphere();
-  Sphere(const Vector3 & center, const float radius, const Material & material);
+  Sphere(const Vector3 & center, float radius, const Material & material);
   Sphere(const Sphere & sphere);
   Sphere & operator =(const Sphere & sphere);
   ~Sphere();

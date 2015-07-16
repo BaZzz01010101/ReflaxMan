@@ -28,6 +28,11 @@ Scene::~Scene()
 
 Sphere * Scene::addSphere(const Vector3 & center, float radius, const Material & material)
 {
+  assert(radius > VERY_SMALL_NUMBER);
+
+  if (radius <= VERY_SMALL_NUMBER)
+    radius = VERY_SMALL_NUMBER;
+
   Sphere * sphere = new Sphere(center, radius, material);
   sceneObjects.push_back(sphere);
   return sphere;
@@ -42,6 +47,11 @@ Triangle * Scene::addTriangle(const Vector3 & v1, const Vector3 & v2, const Vect
 
 OmniLight * Scene::addLight(const Vector3 & origin, float radius, const Color & color, float power)
 {
+  assert(radius > VERY_SMALL_NUMBER);
+
+  if (radius <= VERY_SMALL_NUMBER)
+    radius = VERY_SMALL_NUMBER;
+
   envColor += color * power;
   OmniLight * light = new OmniLight(origin, radius, color, power);
   sceneLights.push_back(light);

@@ -113,7 +113,7 @@ Color Color::operator *(const Color & f) const
 
 ARGB Color::argb() const
 {
-  return MAKEARGB(0, (r - FLT_EPSILON) * 256.0f, (g - FLT_EPSILON)  * 256.0f, (b - FLT_EPSILON)  * 256.0f);
+  return MAKEARGB(0, r * 255.999f, g * 255.999f, b * 255.999f);
 }
 
 void Color::clamp()
