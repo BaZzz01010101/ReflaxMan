@@ -20,9 +20,9 @@ private:
   SCENE_LIGHTS sceneLights;
   SCENE_TEXTURES sceneTextures;
 
+  Color diffLightColor;
   Color envColor;
   Skybox skybox;
-  Color diffLightColor;
   float diffLightPower;
 
 public:

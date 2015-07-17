@@ -39,7 +39,7 @@ Color::~Color()
 {
 }
 
-Color & Color::operator *=(const float & f) 
+Color & Color::operator *=(const float & f)
 {
   r *= f;
   g *= f;
@@ -47,7 +47,7 @@ Color & Color::operator *=(const float & f)
   return *this;
 }
 
-Color & Color::operator /=(const float & f) 
+Color & Color::operator /=(const float & f)
 {
   assert(fabs(f) > VERY_SMALL_NUMBER);
 
@@ -118,7 +118,7 @@ ARGB Color::argb() const
 
 void Color::clamp()
 {
-  r = Airly::clamp(r, 0.0f, 1.0f);
-  g = Airly::clamp(g, 0.0f, 1.0f);
-  b = Airly::clamp(b, 0.0f, 1.0f);
+  r = Tracemath::clamp(r, 0.0f, 1.0f);
+  g = Tracemath::clamp(g, 0.0f, 1.0f);
+  b = Tracemath::clamp(b, 0.0f, 1.0f);
 }

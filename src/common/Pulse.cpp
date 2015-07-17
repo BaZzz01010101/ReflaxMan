@@ -45,7 +45,6 @@ Pulse::Pulse(BasePlatformInterface * platformInterface) :
   frameTimeAccumulator = 0.0f;
   frameTime = 0.0f;
   renderChunkInPixels = 1;
-  scrnshotFileName;
   scrnshotWidth = 0;
   scrnshotHeight = 0;
   scrnshotSamples = 0;
@@ -70,7 +69,7 @@ std::string Pulse::format(const char* format, ...)
   char * buffer = &buf.front();
   vsnprintf(buffer, str_size, format, args);
   va_end(args);
-  
+
   return buffer;
 }
 
@@ -253,6 +252,7 @@ void Pulse::exec()
     break;
   default:
     assert(0);
+    break;
   }
 }
 
@@ -281,7 +281,7 @@ std::vector<std::string> * Pulse::getCurrentScreenText()
     screenText.push_back("Select screenshot resolution (keys 1-9)");
     screenText.push_back("");
 
-    for (int i = 0; i < sizeof(res) / sizeof(*res); i++)
+    for (unsigned int i = 0; i < sizeof(res) / sizeof(*res); i++)
       screenText.push_back(format("%i : %ix%i %s", i + 1, res[i].w, res[i].h, res[i].tip));
 
     screenText.push_back("");
@@ -291,13 +291,16 @@ std::vector<std::string> * Pulse::getCurrentScreenText()
     screenText.push_back("Select supersampling rate (keys 1-9)");
     screenText.push_back("");
 
-    for (int i = 0; i < sizeof(ss) / sizeof(*ss); i++)
+    for (unsigned int i = 0; i < sizeof(ss) / sizeof(*ss); i++)
       screenText.push_back(format("%i : %ix%i %s", i + 1, ss[i].rate, ss[i].rate, ss[i].tip));
 
     screenText.push_back("");
     screenText.push_back("ESC : cancel");
     break;
+  case stScreenshotRenderBegin:
   case stScreenshotRenderProceed:
+  case stScreenshotRenderSave:
+  case stScreenshotRenderEnd:
   case stScreenshotRenderCancelRequested:
     screenText.push_back("Saving screenshot:");
     screenText.push_back(scrnshotFileName.c_str());
@@ -315,15 +318,18 @@ std::vector<std::string> * Pulse::getCurrentScreenText()
       int min = timeLeft / 60;
       timeLeft = timeLeft % 60;
       int sec = timeLeft;
-  
+
       screenText.push_back(format("Estimated time left: %i h %02i m %02i s", hr, min, sec));
       screenText.push_back("");
 
-      if (state == stScreenshotRenderCancelRequested)
-        screenText.push_back("Do you want to cancel ? ( Y / N ) ");
-      else
-        screenText.push_back("Press ESC to cancel");
     }
+    if (state == stScreenshotRenderCancelRequested)
+      screenText.push_back("Do you want to cancel ? ( Y / N ) ");
+    else
+      screenText.push_back("Press ESC to cancel");
+    break;
+  default:
+    assert(0);
     break;
   }
 
@@ -348,10 +354,11 @@ void Pulse::onKeyEvent(KEY_CODE key, bool isPressed)
       case KEY_D:       mask = shiftRightMask; break;
       case KEY_SPACE:   mask = shiftUpMask; break;
       case KEY_CONTROL: mask = shiftDownMask; break;
-      case KEY_F2:      
-        if(isPressed) 
-          setState(stScreenshotResolutionSelection); 
+      case KEY_F2:
+        if(isPressed)
+          setState(stScreenshotResolutionSelection);
         break;
+      default: break;
     }
     controlFlags = isPressed ? controlFlags | mask : controlFlags & ~mask;
 
@@ -372,6 +379,7 @@ void Pulse::onKeyEvent(KEY_CODE key, bool isPressed)
       case KEY_8: index = 7; break;
       case KEY_9: index = 8; break;
       case KEY_ESCAPE: setState(stCameraControl); break;
+      default: break;
     }
 
     if (index >= 0)
@@ -397,6 +405,7 @@ void Pulse::onKeyEvent(KEY_CODE key, bool isPressed)
       case KEY_8: index = 7; break;
       case KEY_9: index = 8; break;
       case KEY_ESCAPE: setState(stCameraControl); break;
+      default: break;
     }
 
     if (index >= 0)
@@ -416,6 +425,7 @@ void Pulse::onKeyEvent(KEY_CODE key, bool isPressed)
     {
       case KEY_Y: setState(stCameraControl); break;
       case KEY_N: setState(stScreenshotRenderProceed); break;
+      default: break;
     }
   }
 }

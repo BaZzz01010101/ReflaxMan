@@ -12,7 +12,7 @@
 
 #include "Vector3.h"
 
-namespace Airly
+namespace Tracemath
 {
   const float VERY_SMALL_NUMBER = sqrtf(FLT_MIN);
   const float DELTA = 0.0001f;
@@ -40,5 +40,5 @@ namespace Airly
 }
 
 #ifndef FORBIDE_USING_AIRLY_NAMESPACE
-using namespace Airly;
+using namespace Tracemath;
 #endif

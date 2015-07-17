@@ -14,11 +14,12 @@
 #include <sys/stat.h>
 #include <linux/kd.h>
 
+#include "LinuxPlatformInterface.h"
+#include "../common/Pulse.h"
 #include "../common/trace_math.h"
-#include "../common/defaults.h"
-#include "../common/Render.h"
 
-Render * render = NULL;
+LinuxPlatformInterface * plint = NULL;
+Pulse * pulse = NULL;
 Display * dsp = NULL;
 int scr = 0;
 Window win = 0;
@@ -31,178 +32,29 @@ int lineHeight = 0;
 Pixmap pixmap = 0;
 XImage * image = NULL;
 uint32_t * pixels = NULL;
-bool imageReady = false;
-float frameChunkTime = 0.0f;
-float frameTime = 0.0f;
-std::string exeFullPath;
-std::string scrnshotFileName;
-bool scrnshotSaving = false;
-float scrnshotProgress = -1;
-timespec scrnshotStartTs = { 0, 0 };
-bool scrnshotCancelRequested = false;
-bool scrnshotCancelConfirmed = false;
+Atom wmDeleteMessage = 0;
 bool quitMessage = false;
-int controlFlags = 0;
-const int defaultScreenshotWidth = 1280;
-const int defaultScreenshotHeight = 720;
-const int defaultScreenshotSamples = 16;
 
-void print(Drawable dr, const int x, const int y, const char* format, ...)
+void OutlinePrint(Drawable dr, const int x, const int y, const char* str)
 {
-  static std::vector<char> buf(1024);
-  va_list args;
-  va_start(args, format);
-  const size_t str_size = 1 + vsnprintf(0, 0, format, args);
-  if (str_size > buf.size())
-    buf.resize(str_size);
-  char * buffer = &buf.front();
-  vsnprintf(buffer, str_size, format, args);
-  va_end(args);
-
   XSetForeground(dsp, gc, 0xAAAAAA);
-  XDrawString(dsp, dr, gc, x - 1, y - 1, buffer, (int)strlen(buffer));
-  XDrawString(dsp, dr, gc, x, y - 1, buffer, (int)strlen(buffer));
-  XDrawString(dsp, dr, gc, x + 1, y - 1, buffer, (int)strlen(buffer));
-  XDrawString(dsp, dr, gc, x - 1, y, buffer, (int)strlen(buffer));
-  XDrawString(dsp, dr, gc, x + 1, y, buffer, (int)strlen(buffer));
-  XDrawString(dsp, dr, gc, x - 1, y + 1, buffer, (int)strlen(buffer));
-  XDrawString(dsp, dr, gc, x, y + 1, buffer, (int)strlen(buffer));
-  XDrawString(dsp, dr, gc, x + 1, y + 1, buffer, (int)strlen(buffer));
-
+  XDrawString(dsp, dr, gc, x - 1, y - 1, str, (int)strlen(str));
+  XDrawString(dsp, dr, gc, x, y - 1, str, (int)strlen(str));
+  XDrawString(dsp, dr, gc, x + 1, y - 1, str, (int)strlen(str));
+  XDrawString(dsp, dr, gc, x - 1, y, str, (int)strlen(str));
+  XDrawString(dsp, dr, gc, x + 1, y, str, (int)strlen(str));
+  XDrawString(dsp, dr, gc, x - 1, y + 1, str, (int)strlen(str));
+  XDrawString(dsp, dr, gc, x, y + 1, str, (int)strlen(str));
+  XDrawString(dsp, dr, gc, x + 1, y + 1, str, (int)strlen(str));
   XSetForeground(dsp, gc, 0);
-  XDrawString(dsp, dr, gc, x, y, buffer, (int)strlen(buffer));
-}
-
-int clock_timediff_ms(const timespec ts1, const timespec ts0)
-{
-  timespec diff;
-  diff.tv_nsec = ts1.tv_nsec - ts0.tv_nsec;
-  diff.tv_sec = ts1.tv_sec - ts0.tv_sec;
-
-  if(ts1.tv_nsec < ts0.tv_nsec)
-  {
-    diff.tv_sec--;
-    diff.tv_nsec = 1000000000 + diff.tv_nsec;
-  }
-
-  return diff.tv_sec * 1000 + diff.tv_nsec / 1000000;
-}
-
-int clock_timediff_mcs(const timespec ts1, const timespec ts0)
-{
-  timespec diff;
-  diff.tv_nsec = ts1.tv_nsec - ts0.tv_nsec;
-  diff.tv_sec = ts1.tv_sec - ts0.tv_sec;
-
-  if(ts1.tv_nsec < ts0.tv_nsec)
-  {
-    diff.tv_sec--;
-    diff.tv_nsec = 1000000000 + diff.tv_nsec;
-  }
-
-  return diff.tv_sec * 1000000 + diff.tv_nsec / 1000;
-}
-
-void ProceedControl()
-{
-  static timespec prevTs;
-  static const bool initSuccess = !clock_gettime(CLOCK_MONOTONIC, &prevTs);
-  timespec ts;
-
-  if(initSuccess && !clock_gettime(CLOCK_MONOTONIC, &ts))
-  {
-    const float timePassedSec = float(clock_timediff_mcs(ts, prevTs)) / 1000000.f;
-    render->camera.proceedControl(controlFlags, timePassedSec);
-    prevTs = ts;
-  }
-}
-
-void DrawScreenshotStats(Drawable dr)
-{
-  const int x = 3;
-  int y = fontAscent + 3;
-
-  print(dr, x, y, "Saving screenshot:");
-
-  y += lineHeight;
-  print(dr, x, y, scrnshotFileName.c_str());
-
-  y += lineHeight;
-  print(dr, x, y, "Resolution: %ix%i", defaultScreenshotWidth, defaultScreenshotHeight);
-
-  y += lineHeight;
-  print(dr, x, y, "SSAA: %ix", defaultScreenshotSamples);
-
-  y += lineHeight * 2;
-  print(dr, x, y, "Progress: %.2f %%", scrnshotProgress);
-
-  if (scrnshotProgress > VERY_SMALL_NUMBER)
-  {
-    timespec ts;
-    if(!clock_gettime(CLOCK_MONOTONIC, &ts))
-    {
-      const int timePassedMs = clock_timediff_ms(ts, scrnshotStartTs);
-      int timeLeftMs = int(timePassedMs * 100 / scrnshotProgress) - timePassedMs;
-
-      int h = timeLeftMs / 3600000;
-      timeLeftMs = timeLeftMs % 3600000;
-      int m = timeLeftMs / 60000;
-      timeLeftMs = timeLeftMs % 60000;
-      int s = timeLeftMs / 1000;
-      y += lineHeight;
-      print(dr, x, y, "Estimated time left: %i h %02i m %02i s", h, m, s);
-    }
-  }
-
-  if (scrnshotCancelRequested)
-  {
-    y += lineHeight * 2;
-    print(dr, x, y, "Do you want to cancel ? ( Y / N ) ");
-  }
-  else
-  {
-    y += lineHeight * 2;
-    print(dr, x, y, "Press ESC to cancel");
-  }
-}
-
-void DrawSceneStats(Drawable dr)
-{
-  const int x = 3;
-  int y = fontAscent + 3;
-
-  if (frameTime < 10)
-    print(dr, x, y, "Frame time: %.0f ms", frameTime * 1000);
-  else
-    print(dr, x, y, "Frame time: %.03f s", frameTime);
-
-  y += lineHeight;
-  print(dr, x, y, "Blended frames : %i", render->additiveCounter);
-
-  y += lineHeight * 2;
-  print(dr, x, y, "WSAD : moving");
-
-  y += lineHeight;
-  print(dr, x, y, "Cursor : turning");
-
-  y += lineHeight;
-  print(dr, x, y, "Space : ascenting");
-
-  y += lineHeight;
-  print(dr, x, y, "Ctrl : descenting");
-
-  y += lineHeight * 2;
-  print(dr, x, y, "F2 : save screenshot");
+  XDrawString(dsp, dr, gc, x, y, str, (int)strlen(str));
 }
 
 void DrawImage(Drawable dr)
 {
-  if (imageReady)
+  if (pulse->imageReady)
   {
-    const int width = render->imageWidth;
-    const int height = render->imageHeight;
-
-    if (!image || image->width != width || image->height != height)
+    if (!image || image->width != (int)clientWidth || image->height != (int)clientHeight)
     {
       if(image)
       {
@@ -216,10 +68,10 @@ void DrawImage(Drawable dr)
         pixels = NULL;
       }
 
-      pixels = (uint32_t*)malloc(width * height * 4);
+      pixels = (uint32_t*)malloc(clientWidth * clientHeight * 4);
 
       if(pixels)
-        image = XCreateImage(dsp, vis, 24, ZPixmap, 0, (char*)pixels, width, height, 32, 0);
+        image = XCreateImage(dsp, vis, 24, ZPixmap, 0, (char*)pixels, clientWidth, clientHeight, 32, 0);
 
       assert(pixels);
       assert(image);
@@ -227,12 +79,12 @@ void DrawImage(Drawable dr)
 
     if(pixels)
     {
-      for (int y = 0; y < height; ++y)
-      for (int x = 0; x < width; ++x)
-        pixels[x + (height - y - 1) * width] = render->imagePixel(x, y).argb();
+      for (unsigned int y = 0; y < clientHeight; ++y)
+      for (unsigned int x = 0; x < clientWidth; ++x)
+        pixels[x + (clientHeight - y - 1) * clientWidth] = pulse->getRenderImagePixel(x, y);
     }
 
-    imageReady = false;
+    pulse->imageReady = false;
   }
 
   if (image)
@@ -255,97 +107,16 @@ void DrawImage(Drawable dr)
   }
 }
 
-void ScrnshotSavingPulse()
+void DrawTextTips(Drawable dr)
 {
-  if (scrnshotProgress < 0)
+  std::vector<std::string> & text = *pulse->getCurrentScreenText();
+  const int x = 3;
+  int y = fontAscent + 3;
+
+  for (int i = 0, sz = (int)text.size(); i < sz; i++)
   {
-    timespec ts;
-
-    if(!clock_gettime(CLOCK_REALTIME, &ts))
-    {
-      unsigned int highTime = ts.tv_sec / 1000000;
-      unsigned int lowTime = (ts.tv_sec % 1000000 * 1000) + ts.tv_nsec / 1000000;
-      const int bufSize = 256;
-      char name[bufSize];
-      snprintf(name, bufSize, "scrnshoot_%08X%08X.bmp", highTime, lowTime);
-      scrnshotFileName = exeFullPath + name;
-
-      render->setImageSize(defaultScreenshotWidth, defaultScreenshotHeight);
-
-      if(!clock_gettime(CLOCK_MONOTONIC, &scrnshotStartTs))
-        render->renderBegin(Default::scrnshotRefections, defaultScreenshotSamples, false);
-    }
-  }
-
-  if (!scrnshotCancelConfirmed && render->renderNext(render->imageWidth / defaultScreenshotSamples))
-  {
-    scrnshotProgress = render->getRenderProgress();
-    XClearArea(dsp, win, 0, 0, 0, 0, true);
-  }
-  else
-  {
-    if (!scrnshotCancelConfirmed)
-    {
-      Texture imageTexture(render->imageWidth, render->imageHeight);
-      render->copyImage(imageTexture);
-      imageTexture.saveToFile(scrnshotFileName.c_str());
-    }
-
-    scrnshotProgress = -1;
-    scrnshotSaving = false;
-    scrnshotCancelConfirmed = false;
-
-    if (clientWidth && clientHeight)
-      render->setImageSize(clientWidth, clientHeight);
-    else
-      render->setImageSize(1, 1);
-  }
-}
-
-void ImageRenderPulse()
-{
-  static int motionDynSamples = Default::motionMinSamples;
-  static int prevSamples = 0;
-  static bool prevInMotion = false;
-  const bool inMotion = controlFlags || render->camera.inMotion();
-
-  if (!imageReady && render->imageWidth && render->imageHeight)
-  {
-    if (!render->inProgress || (inMotion && motionDynSamples != prevSamples))
-    {
-      if (inMotion)
-      {
-        if (frameTime > Default::maxMotionFrameTime)
-          motionDynSamples = max(motionDynSamples - 1, Default::motionMaxSamples);
-        else if (frameTime < Default::minMotionFrameTime)
-          motionDynSamples = min(motionDynSamples + 1, Default::motionMinSamples);
-      }
-
-      const int reflNum = (inMotion || prevInMotion) ? Default::motionReflections : Default::staticReflections;
-      const int sampleNum = (inMotion || prevInMotion) ? motionDynSamples : Default::staticSamples;
-
-      render->renderBegin(reflNum, sampleNum, !(inMotion || prevInMotion));
-      prevSamples = sampleNum;
-      prevInMotion = inMotion;
-    }
-
-    timespec ts0, ts1;
-    if(!clock_gettime(CLOCK_MONOTONIC, &ts0))
-    {
-      const bool isComplete = !render->renderNext(render->imageWidth);
-
-      if (!clock_gettime(CLOCK_MONOTONIC, &ts1))
-        frameChunkTime += float(clock_timediff_mcs(ts1, ts0)) / 1000000.0f;
-
-      if (isComplete)
-      {
-        frameTime = frameChunkTime;
-        frameChunkTime = 0;
-        imageReady = true;
-        XClearArea(dsp, win, 0, 0, 0, 0, true);
-        XFlush(dsp);
-      }
-    }
+    OutlinePrint(dr, x, y, text[i].c_str());
+    y += lineHeight;
   }
 }
 
@@ -357,26 +128,28 @@ void OnResize(XConfigureEvent & e)
 {
   Window root;
   int x, y;
-  unsigned int newClientWidth, newClientHeight, border, depth;
-  XGetGeometry(dsp, win, &root, &x, &y, &newClientWidth, &newClientHeight, &border, &depth);
+  unsigned int width, height, border, depth;
+  XGetGeometry(dsp, win, &root, &x, &y, &width, &height, &border, &depth);
 
-  if(!pixmap || newClientWidth != clientWidth || newClientHeight != clientHeight)
+  if(!pixmap || width != clientWidth || height != clientHeight)
   {
-    clientWidth = newClientWidth;
-    clientHeight = newClientHeight;
-
-    if(pixmap)
+    if (width && height)
     {
-      XFreePixmap(dsp, pixmap);
-      pixmap = 0;
+      if(pixmap)
+      {
+        XFreePixmap(dsp, pixmap);
+        pixmap = 0;
+      }
+
+      pixmap = XCreatePixmap(dsp, win, width, height, 24);
+      XFillRectangle(dsp, pixmap, gc, 0, 0, width, height);
+
+      pulse->onResize(width, height);
+
+      clientWidth = width;
+      clientHeight = height;
     }
-
-    pixmap = XCreatePixmap(dsp, win, clientWidth, clientHeight, 24);
-    XFillRectangle(dsp, pixmap, gc, 0, 0, clientWidth, clientHeight);
   }
-
-  if (!scrnshotSaving)
-    render->setImageSize(clientWidth, clientHeight);
 }
 
 void OnExpose(XExposeEvent & e)
@@ -384,141 +157,70 @@ void OnExpose(XExposeEvent & e)
   if(!e.count)
   {
     DrawImage(pixmap);
-
-    if (scrnshotProgress >= 0)
-      DrawScreenshotStats(pixmap);
-    else
-      DrawSceneStats(pixmap);
+    DrawTextTips(pixmap);
 
     XCopyArea(dsp, pixmap, win, gc, 0, 0, clientWidth, clientHeight, 0, 0);
     XFlush(dsp);
   }
 }
 
-void OnKeyPress(XKeyEvent & e)
+void OnKeyEvent(XKeyEvent & e, bool isPressed)
 {
   const int buf_size = 256;
   char buf[buf_size];
   KeySym ks;
   XLookupString(&e, buf, buf_size, &ks, NULL);
 
-  switch(ks)
+  switch (ks)
   {
-    case XK_Left:
-      controlFlags |= turnLeftMask;
-      break;
-    case XK_Right:
-      controlFlags |= turnRightMask;
-      break;
-    case XK_Up:
-      controlFlags |= turnDownMask;
-      break;
-    case XK_Down:
-      controlFlags |= turnUpMask;
-      break;
+    case XK_Left:     pulse->onKeyEvent(KEY_LEFT, isPressed);    break;
+    case XK_Right:    pulse->onKeyEvent(KEY_RIGHT, isPressed);   break;
+    case XK_Up:       pulse->onKeyEvent(KEY_UP, isPressed);      break;
+    case XK_Down:     pulse->onKeyEvent(KEY_DOWN, isPressed);    break;
     case XK_W:
-    case XK_w:
-      controlFlags |= shiftForwardMask;
-      break;
+    case XK_w:        pulse->onKeyEvent(KEY_W, isPressed);       break;
     case XK_S:
-    case XK_s:
-      controlFlags |= shiftBackMask;
-      break;
+    case XK_s:        pulse->onKeyEvent(KEY_S, isPressed);       break;
     case XK_A:
-    case XK_a:
-      controlFlags |= shiftLeftMask;
-      break;
+    case XK_a:        pulse->onKeyEvent(KEY_A, isPressed);       break;
     case XK_D:
-    case XK_d:
-      controlFlags |= shiftRightMask;
-      break;
-    case XK_space:
-      controlFlags |= shiftUpMask;
-      break;
+    case XK_d:        pulse->onKeyEvent(KEY_D, isPressed);       break;
+    case XK_space:    pulse->onKeyEvent(KEY_SPACE, isPressed);   break;
     case XK_Control_L:
-    case XK_Control_R:
-      controlFlags |= shiftDownMask;
-      break;
-    case XK_F2:
-      scrnshotSaving = true;
-      break;
-    case XK_Escape:
-      if (scrnshotSaving)
-        scrnshotCancelRequested = true;
-      break;
+    case XK_Control_R:pulse->onKeyEvent(KEY_CONTROL, isPressed); break;
+    case XK_F2:       pulse->onKeyEvent(KEY_F2, isPressed);      break;
+    case XK_1:        pulse->onKeyEvent(KEY_1, isPressed);       break;
+    case XK_2:        pulse->onKeyEvent(KEY_2, isPressed);       break;
+    case XK_3:        pulse->onKeyEvent(KEY_3, isPressed);       break;
+    case XK_4:        pulse->onKeyEvent(KEY_4, isPressed);       break;
+    case XK_5:        pulse->onKeyEvent(KEY_5, isPressed);       break;
+    case XK_6:        pulse->onKeyEvent(KEY_6, isPressed);       break;
+    case XK_7:        pulse->onKeyEvent(KEY_7, isPressed);       break;
+    case XK_8:        pulse->onKeyEvent(KEY_8, isPressed);       break;
+    case XK_9:        pulse->onKeyEvent(KEY_9, isPressed);       break;
+    case XK_Escape:   pulse->onKeyEvent(KEY_ESCAPE, isPressed);  break;
     case XK_Y:
-    case XK_y:
-      if (scrnshotCancelRequested)
-      {
-        scrnshotCancelRequested = false;
-        scrnshotCancelConfirmed = true;
-      }
+    case XK_y:        pulse->onKeyEvent(KEY_Y, isPressed);       break;
     case XK_N:
-    case XK_n:
-      if (scrnshotCancelRequested)
-        scrnshotCancelRequested = false;
-  }
-}
-
-void OnKeyRelease(XKeyEvent & e)
-{
-  const int buf_size = 256;
-  char buf[buf_size];
-  KeySym ks;
-  XLookupString(&e, buf, buf_size, &ks, NULL);
-
-  switch(ks)
-  {
-    case XK_Left:
-      controlFlags &= ~turnLeftMask;
-      break;
-    case XK_Right:
-      controlFlags &= ~turnRightMask;
-      break;
-    case XK_Up:
-      controlFlags &= ~turnDownMask;
-      break;
-    case XK_Down:
-      controlFlags &= ~turnUpMask;
-      break;
-    case XK_W:
-    case XK_w:
-      controlFlags &= ~shiftForwardMask;
-      break;
-    case XK_S:
-    case XK_s:
-      controlFlags &= ~shiftBackMask;
-      break;
-    case XK_A:
-    case XK_a:
-      controlFlags &= ~shiftLeftMask;
-      break;
-    case XK_D:
-    case XK_d:
-      controlFlags &= ~shiftRightMask;
-      break;
-    case XK_space:
-      controlFlags &= ~shiftUpMask;
-      break;
-    case XK_Control_L:
-    case XK_Control_R:
-      controlFlags &= ~shiftDownMask;
-      break;
+    case XK_n:        pulse->onKeyEvent(KEY_N, isPressed);       break;
   }
 }
 
 void ProcessEvent(XEvent & e)
 {
+  if (e.type == ClientMessage && e.xclient.data.l[0] == (int)wmDeleteMessage)
+    quitMessage = true;
+
   switch(e.type)
   {
   case Expose:
     OnExpose(e.xexpose);
     break;
   case KeyPress:
-    OnKeyPress(e.xkey);
+    OnKeyEvent(e.xkey, true);
     break;
   case KeyRelease:
-    OnKeyRelease(e.xkey);
+    OnKeyEvent(e.xkey, false);
     break;
   case MappingNotify:
     XRefreshKeyboardMapping(&e.xmapping);
@@ -547,26 +249,11 @@ int main()
     XQueryTextExtents(dsp, XGContextFromGC(gc), "Jj", 2, &direction, &fontAscent, &fontDescent, &overall);
     lineHeight = fontAscent + fontDescent + 1;
 
-    Atom wmDeleteMessage = XInternAtom(dsp, "WM_DELETE_WINDOW", false);
+    wmDeleteMessage = XInternAtom(dsp, "WM_DELETE_WINDOW", false);
     XSetWMProtocols(dsp, win, &wmDeleteMessage, 1);
 
-    exeFullPath = "./";
-    std::vector<char> buffer(PATH_MAX + 1);
-    char * pathStr = &buffer.front();
-    int pathLen = readlink("/proc/self/exe", pathStr, PATH_MAX);
-
-    if(pathLen > 0)
-    {
-      pathStr[pathLen] = '\0';
-      char * exeNamePtr = strrchr(pathStr, '/');
-      if(exeNamePtr)
-      {
-        *++exeNamePtr = '\0';
-        exeFullPath = std::string(pathStr);
-      }
-    }
-
-    render = new Render(exeFullPath.c_str());
+    plint = new LinuxPlatformInterface(dsp, win);
+    pulse = new Pulse(plint);
 
     XMapWindow(dsp, win);
     XFlush(dsp);
@@ -579,20 +266,9 @@ int main()
       {
         XNextEvent(dsp, &e);
         ProcessEvent(e);
-
-        if (e.type == ClientMessage && e.xclient.data.l[0] == (int)wmDeleteMessage)
-          quitMessage = true;
       }
 
-      if (scrnshotSaving)
-      {
-        ScrnshotSavingPulse();
-      }
-      else
-      {
-        ProceedControl();
-        ImageRenderPulse();
-      }
+      pulse->exec();
     }
   }
 
@@ -604,7 +280,8 @@ int main()
   if(pixmap)
     XFreePixmap(dsp, pixmap);
 
-  delete render;
+    delete pulse;
+    delete plint;
 
   return 0;
 }

@@ -1,6 +1,6 @@
 #include "trace_math.h"
 
-Vector3 Airly::normalize(const Vector3 & v)
+Vector3 Tracemath::normalize(const Vector3 & v)
 {
   float len = v.length();
   assert(len > VERY_SMALL_NUMBER);
@@ -11,7 +11,7 @@ Vector3 Airly::normalize(const Vector3 & v)
     return v;
 }
 
-Vector3 Airly::reflect(const Vector3 & v, const Vector3 & norm)
+Vector3 Tracemath::reflect(const Vector3 & v, const Vector3 & norm)
 {
   float dotNorm = norm * norm;
   assert(dotNorm > VERY_SMALL_NUMBER);

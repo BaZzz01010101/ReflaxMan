@@ -47,7 +47,7 @@ bool Texture::loadFromTGAFile(const char * fileName)
       width = header.xsize;
       height = header.ysize;
       const int bpp = header.bpix;
-      const int colorOffset = sizeof(header)+header.idlen + header.cmlen * header.cmbits / 8;
+      const int colorOffset = sizeof(header) + header.idlen + header.cmlen * header.cmbits / 8;
 
       if (!fseek(fh, colorOffset, SEEK_SET)
         &&
@@ -144,7 +144,7 @@ bool Texture::saveToBMPFile(const char * fileName) const
   if (fh)
   {
     BMPFileHeader fileHeader;
-    fileHeader.bfType = 'MB';
+    fileHeader.bfType = ((uint16_t)('M') << 8) | (uint16_t)('B');
     fileHeader.bfSize = sizeof(BMPFileHeader) + sizeof(BMPInfoHeader) + width * height * 4;
     fileHeader.bfReserved1 = 0;
     fileHeader.bfReserved2 = 0;
@@ -224,7 +224,7 @@ Color Texture::getTexelColor(const unsigned int x, const unsigned int y) const
     return Color(0, 0, 0);
   else if(colorBuf.empty())
     return (((x * 50 / width) % 2) ^ ((y * 50 / width) % 2)) ? Color(0.5f, 0.5f, 0.5f) : Color(0.75f, 0.75f, 0.75f);
-  else 
+  else
     return Color(colorBuf[clamp(x, 0, width - 1) + width * clamp(y, 0, height - 1)]);
 }
 

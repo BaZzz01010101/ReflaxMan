@@ -44,7 +44,6 @@ void DrawImage(const HWND hWnd, const HDC hdc)
 {
   if (pulse->imageReady)
   {
-
     if (bmWidth != clientWidth || bmHeight != clientHeight)
     {
       if (memDC)
@@ -215,7 +214,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
   case WM_PAINT:
     hdc = BeginPaint(hWnd, &ps);
 
-    if (hdc) 
+    if (hdc)
       OnPaint(hWnd, hdc);
 
     EndPaint(hWnd, &ps);
@@ -265,17 +264,17 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
   RegisterClassExA(&wcex);
 
-  hWnd = CreateWindowA("clReflaxWindow", "Reflax", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 
+  hWnd = CreateWindowA("clReflaxWindow", "Reflax", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
     640, 480, NULL, NULL, hInstance, NULL);
-  
-  font = CreateFontA(12, -4, 0, 0, FW_NORMAL, false, false, false, DEFAULT_CHARSET, 
-    OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, FF_DONTCARE, "Aria");
-
-  plint = new WindowsPlatformInterface(hWnd);
-  pulse = new Pulse(plint);
 
   if (hWnd)
   {
+    font = CreateFontA(12, -4, 0, 0, FW_NORMAL, false, false, false, DEFAULT_CHARSET,
+      OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, FF_DONTCARE, "Aria");
+
+    plint = new WindowsPlatformInterface(hWnd);
+    pulse = new Pulse(plint);
+
     ShowWindow(hWnd, nCmdShow);
     UpdateWindow(hWnd);
 
@@ -303,7 +302,6 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
     delete pulse;
     delete plint;
-
 
     return (int)msg.wParam;
 

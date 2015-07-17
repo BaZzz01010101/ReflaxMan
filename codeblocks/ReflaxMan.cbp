@@ -43,6 +43,8 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
+		<Unit filename="../src/common/BasePlatformInterface.cpp" />
+		<Unit filename="../src/common/BasePlatformInterface.h" />
 		<Unit filename="../src/common/Camera.cpp" />
 		<Unit filename="../src/common/Camera.h" />
 		<Unit filename="../src/common/Color.cpp" />
@@ -55,6 +57,8 @@
 		<Unit filename="../src/common/OmniLight.h" />
 		<Unit filename="../src/common/Plane.cpp" />
 		<Unit filename="../src/common/Plane.h" />
+		<Unit filename="../src/common/Pulse.cpp" />
+		<Unit filename="../src/common/Pulse.h" />
 		<Unit filename="../src/common/Render.cpp" />
 		<Unit filename="../src/common/Render.h" />
 		<Unit filename="../src/common/Scene.cpp" />
@@ -75,6 +79,8 @@
 		<Unit filename="../src/common/image_headers.h" />
 		<Unit filename="../src/common/trace_math.cpp" />
 		<Unit filename="../src/common/trace_math.h" />
+		<Unit filename="../src/linux/LinuxPlatformInterface.cpp" />
+		<Unit filename="../src/linux/LinuxPlatformInterface.h" />
 		<Unit filename="../src/linux/main.cpp" />
 		<Extensions>
 			<code_completion />
