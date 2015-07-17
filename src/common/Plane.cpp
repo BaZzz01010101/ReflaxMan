@@ -6,18 +6,18 @@ Plane::Plane()
 {
 }
 
-Plane::Plane(const Vector3 & pos, const Vector3 & norm, const Material & material)
+Plane::Plane(const Vector3 & pos, const Vector3 & norm, const Material & material) :
+  pos(pos),
+  norm(norm),
+  material(material)
 {
-  this->material = material;
-  this->pos = pos;
-  this->norm = norm;
 }
 
-Plane::Plane(const Plane & plane)
+Plane::Plane(const Plane & plane) :
+  pos(plane.pos),
+  norm(plane.norm),
+  material(plane.material)
 {
-  material = plane.material;
-  pos = plane.pos;
-  norm = plane.norm;
 }
 
 Plane & Plane::operator =(const Plane & plane)

@@ -5,6 +5,7 @@ Camera::Camera()
 {
   yaw = 0;
   pitch = 0;
+  fov = 0;
 
   turnAccel = Default::turnAccel;
   turnDecel = Default::turnDecel;
@@ -20,9 +21,9 @@ Camera::Camera()
   shiftFBSpeed = 0;
 }
 
-Camera::Camera(const Vector3 & eye, const Vector3 & at, const float fov)
+Camera::Camera(const Vector3 & eye, const Vector3 & at, const float fov) :
+  eye(eye)
 {
-  this->eye = eye;
   this->fov = fov;
 
   Vector3 up(0.0f, 1.0f, 0.0f);
@@ -54,11 +55,11 @@ Camera::Camera(const Vector3 & eye, const Vector3 & at, const float fov)
   shiftFBSpeed = 0;
 }
 
-Camera::Camera(const Camera & camera)
+Camera::Camera(const Camera & camera) :
+  eye(camera.eye),
+  view(camera.view)
 {
-  eye = camera.eye;
   fov = camera.fov;
-  view = camera.view;
 
   yaw = camera.yaw;
   pitch = camera.pitch;
@@ -159,7 +160,6 @@ void Camera::proceedControl(const int controlFlags, const float timePassedSec)
       shiftRLSpeed = clamp(shiftRLSpeed - (shiftDecel + shiftAccel) * timePassedSec, -maxShiftSpeed, maxShiftSpeed);
     else
       shiftRLSpeed = clamp(shiftRLSpeed - shiftAccel * timePassedSec, -maxShiftSpeed, maxShiftSpeed);
-    break;
     break;
   default:
     if (shiftRLSpeed < 0.0f)

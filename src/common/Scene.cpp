@@ -7,11 +7,11 @@ Scene::Scene()
 {
 }
 
-Scene::Scene(const Color & diffLightColor, float diffLightPower)
+Scene::Scene(const Color & diffLightColor, float diffLightPower) :
+  diffLightColor(diffLightColor),
+  envColor(diffLightColor * diffLightPower)
 {
-  this->diffLightColor = diffLightColor;
   this->diffLightPower = diffLightPower;
-  envColor = diffLightColor * diffLightPower;
 }
 
 Scene::~Scene()

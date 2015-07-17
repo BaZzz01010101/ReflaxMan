@@ -4,28 +4,27 @@
 
 Sphere::Sphere()
 {
-
 }
 
-Sphere::Sphere(const Vector3 & center, float radius, const Material & material) 
+Sphere::Sphere(const Vector3 & center, float radius, const Material & material) :
+  center(center),
+  material(material)
 {
   assert(radius > VERY_SMALL_NUMBER);
 
   if (radius <= VERY_SMALL_NUMBER)
     radius = VERY_SMALL_NUMBER;
 
-  this->center = center;
   this->radius = radius;
   this->sqRadius = radius * radius;
-  this->material = material;
 }
 
-Sphere::Sphere(const Sphere & sphere) 
+Sphere::Sphere(const Sphere & sphere) :
+  center(sphere.center),
+  material(sphere.material)
 {
-  center = sphere.center;
   radius = sphere.radius;
   sqRadius = radius * radius;
-  material = sphere.material;
 }
 
 Sphere & Sphere::operator =(const Sphere & sphere)

@@ -17,7 +17,7 @@ private:
 
 public:
   Triangle();
-  Triangle(const Vector3 & v1, const Vector3 & v2, const Vector3 & v3, const Material & material);
+  Triangle(const Vector3 & v0, const Vector3 & v1, const Vector3 & v2, const Material & material);
   Triangle(const Triangle & Triangle);
   Triangle & operator =(const Triangle & Triangle);
   ~Triangle();

@@ -4,10 +4,15 @@
 
 Render::Render(const char * exePath)
 {
+  renderReflectNum = 0;
+  renderSampleNum = 0;
+  renderAdditive = false;
   additiveCounter = 0;
   inProgress = false;
   curx = 0;
   cury = 0;
+  imageWidth = 0;
+  imageHeight = 0;
 
   loadScene(exePath);
 }

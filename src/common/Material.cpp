@@ -5,18 +5,18 @@ Material::Material()
 {
 }
 
-Material::Material(const Type type, const Color color, const float reflectivity, const float transparency)
+Material::Material(const Type type, const Color & color, const float reflectivity, const float transparency) :
+  color(color)
 {
   this->type = type;
-  this->color = color;
   this->reflectivity = clamp(reflectivity, 0.0f, 1.0f);
   this->transparency = clamp(transparency, 0.0f, 1.0f);
 }
 
-Material::Material(const Material & mat)
+Material::Material(const Material & mat) :
+  color(mat.color)
 {
   type = mat.type;
-  color = mat.color;
   reflectivity = mat.reflectivity;
   transparency = mat.transparency;
 }

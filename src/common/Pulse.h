@@ -44,14 +44,14 @@ enum KEY_CODE
   KEY_ESCAPE,
 };
 
-struct RESOLUTION
+struct Resolution
 {
   int w;
   int h;
   const char * tip;
 }; 
 
-struct SS_RATE
+struct SsRate
 {
   int rate;
   const char * tip;

@@ -161,3 +161,4 @@ build/*.bmp
 *.bsc
 *.depend
 *.layout
+*.cppcheck

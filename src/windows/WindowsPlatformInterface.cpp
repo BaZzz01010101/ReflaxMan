@@ -45,7 +45,7 @@ uint64_t WindowsPlatformInterface::getSystemTime()
   FILETIME ft;
   GetSystemTimeAsFileTime(&ft);
 
-  return uint64_t(ft.dwHighDateTime) << 32 | uint64_t(ft.dwLowDateTime);
+  return ((uint64_t)(ft.dwHighDateTime)) << 32 | ((uint64_t)(ft.dwLowDateTime));
 }
 
 void WindowsPlatformInterface::getMainWindowClientSize(unsigned int * width, unsigned int * const height)

@@ -6,26 +6,28 @@ Triangle::Triangle()
   texture = NULL;
 }
 
-Triangle::Triangle(const Vector3 & v1, const Vector3 & v2, const Vector3 & v3, const Material & material)
+Triangle::Triangle(const Vector3 & v0, const Vector3 & v1, const Vector3 & v2, const Material & material) :
+  material(material),
+  norm(normalize((v1 - v0) % (v2 - v0)))
 {
-  v[0] = v1; v[1] = v2; v[2] = v3;
-  this->material = material;
+  v[0] = v0; v[1] = v1; v[2] = v2;
+  memset(tu, 0, sizeof(tu));
+  memset(tv, 0, sizeof(tu));
   texture = NULL;
-  norm = normalize((v2 - v1) % (v3 - v1));
-  axTrans = Matrix33(v3 - v1, v2 - v1, -norm);
+  axTrans = Matrix33(v2 - v0, v1 - v0, -norm);
   axTrans.invert();
 }
 
-Triangle::Triangle(const Triangle & triangle)
+Triangle::Triangle(const Triangle & triangle) :
+  material(triangle.material),
+  norm(triangle.norm),
+  texture(triangle.texture),
+  axTrans(triangle.axTrans),
+  tuvTrans(triangle.axTrans)
 {
   memcpy(v, triangle.v, sizeof(v));
   memcpy(tu, triangle.tu, sizeof(tu));
   memcpy(tv, triangle.tv, sizeof(tv));
-  material = triangle.material;
-  norm = triangle.norm;
-  texture = triangle.texture;
-  axTrans = triangle.axTrans;
-  tuvTrans = triangle.axTrans;
 }
 
 Triangle & Triangle::operator =(const Triangle & triangle)

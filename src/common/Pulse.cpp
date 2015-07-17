@@ -7,7 +7,7 @@
 #pragma warning(disable : 4996)
 #endif
 
-RESOLUTION res[9] =
+static Resolution res[9] =
 {
   { 640, 480, "(4:3)", },
   { 800, 600, "(4:3)", },
@@ -17,10 +17,10 @@ RESOLUTION res[9] =
   { 1680, 1050, "(16:10)", },
   { 1920, 1200, "(16:10)", },
   { 1280, 720, "(HD)", },
-  { 1920, 1080, "(HD)", },
+  { 1920, 1080, "(Full HD)", },
 };
 
-SS_RATE ss[9] =
+static SsRate ss[9] =
 {
   { 1, "(fast but rough)" },
   { 2, "" },
@@ -82,11 +82,11 @@ void Pulse::setState(PULSE_STATE state)
 
 void Pulse::proceedControl()
 {
-  static uint64_t prevCounter = 0;
   const uint64_t counter = plint->getPerformanceCounter();
 
   if (counter)
   {
+    static uint64_t prevCounter = 0;
     if (prevCounter)
     {
       float timePassedSec = float(counter - prevCounter) / perfFreq;
@@ -98,14 +98,12 @@ void Pulse::proceedControl()
 
 void Pulse::renderImage()
 {
-  static int motionDynSamples = Default::motionMinSamples;
-  static int prevSamples = 0;
-  static bool prevInMotion = false;
-
-  const bool inMotion = controlFlags || render.camera.inMotion();
-
   if (!imageReady)
   {
+    static int motionDynSamples = Default::motionMinSamples;
+    static int prevSamples = 0;
+    const bool inMotion = controlFlags || render.camera.inMotion();
+
     if (!render.inProgress || (inMotion && motionDynSamples != prevSamples))
     {
       if (inMotion)
@@ -116,6 +114,7 @@ void Pulse::renderImage()
           motionDynSamples = min(motionDynSamples + 1, Default::motionMinSamples);
       }
 
+      static bool prevInMotion = false;
       const int reflNum = (inMotion || prevInMotion) ? Default::motionReflections : Default::staticReflections;
       const int sampleNum = (inMotion || prevInMotion) ? motionDynSamples : Default::staticSamples;
 
@@ -252,17 +251,15 @@ void Pulse::exec()
     screenshotRenderEnd();
     setState(stCameraControl);
     break;
-    break;
+  default:
+    assert(0);
   }
 }
 
 std::vector<std::string> * Pulse::getCurrentScreenText()
 {
   static std::vector<std::string> screenText;
-  static PULSE_STATE lastState = stUnknown;
-
   screenText.clear();
-  lastState = state;
 
   switch (state)
   {
@@ -273,39 +270,39 @@ std::vector<std::string> * Pulse::getCurrentScreenText()
       screenText.push_back(format("Frame time: %.03f s", frameTime));
     screenText.push_back(format("Blended frames : %i", render.additiveCounter));
     screenText.push_back("");
-    screenText.push_back(format("WSAD : moving"));
-    screenText.push_back(format("Cursor keys: turning"));
-    screenText.push_back(format("Space : ascenting"));
-    screenText.push_back(format("Ctrl : descenting"));
+    screenText.push_back("WSAD : moving");
+    screenText.push_back("Cursor keys: turning");
+    screenText.push_back("Space : ascenting");
+    screenText.push_back("Ctrl : descenting");
     screenText.push_back("");
-    screenText.push_back(format("F2 : save screenshot"));
+    screenText.push_back("F2 : save screenshot");
     break;
   case stScreenshotResolutionSelection:
-    screenText.push_back(format("Select screenshot resolution (keys 1-9)"));
+    screenText.push_back("Select screenshot resolution (keys 1-9)");
     screenText.push_back("");
 
     for (int i = 0; i < sizeof(res) / sizeof(*res); i++)
       screenText.push_back(format("%i : %ix%i %s", i + 1, res[i].w, res[i].h, res[i].tip));
 
     screenText.push_back("");
-    screenText.push_back(format("ESC : cancel"));
+    screenText.push_back("ESC : cancel");
     break;
   case stScreenshotSamplingSelection:
-    screenText.push_back(format("Select supersampling rate (keys 1-9)"));
+    screenText.push_back("Select supersampling rate (keys 1-9)");
     screenText.push_back("");
 
     for (int i = 0; i < sizeof(ss) / sizeof(*ss); i++)
-      screenText.push_back(format("%i : %ix %s", i + 1, ss[i].rate, ss[i].tip));
+      screenText.push_back(format("%i : %ix%i %s", i + 1, ss[i].rate, ss[i].rate, ss[i].tip));
 
     screenText.push_back("");
-    screenText.push_back(format("ESC : cancel"));
+    screenText.push_back("ESC : cancel");
     break;
   case stScreenshotRenderProceed:
   case stScreenshotRenderCancelRequested:
-    screenText.push_back(format("Saving screenshot:"));
-    screenText.push_back(format(scrnshotFileName.c_str()));
+    screenText.push_back("Saving screenshot:");
+    screenText.push_back(scrnshotFileName.c_str());
     screenText.push_back(format("Resolution: %ix%i", scrnshotWidth, scrnshotHeight));
-    screenText.push_back(format("SSAA: %ix", scrnshotSamples));
+    screenText.push_back(format("SSAA: %ix%i", scrnshotSamples, scrnshotSamples));
     screenText.push_back("");
     screenText.push_back(format("Progress: %.2f %%", scrnshotProgress));
     if (scrnshotProgress > VERY_SMALL_NUMBER)
@@ -323,9 +320,9 @@ std::vector<std::string> * Pulse::getCurrentScreenText()
       screenText.push_back("");
 
       if (state == stScreenshotRenderCancelRequested)
-        screenText.push_back(format("Do you want to cancel ? ( Y / N ) "));
+        screenText.push_back("Do you want to cancel ? ( Y / N ) ");
       else
-        screenText.push_back(format("Press ESC to cancel"));
+        screenText.push_back("Press ESC to cancel");
     }
     break;
   }
@@ -351,7 +348,10 @@ void Pulse::onKeyEvent(KEY_CODE key, bool isPressed)
       case KEY_D:       mask = shiftRightMask; break;
       case KEY_SPACE:   mask = shiftUpMask; break;
       case KEY_CONTROL: mask = shiftDownMask; break;
-      case KEY_F2:      setState(stScreenshotResolutionSelection); break;
+      case KEY_F2:      
+        if(isPressed) 
+          setState(stScreenshotResolutionSelection); 
+        break;
     }
     controlFlags = isPressed ? controlFlags | mask : controlFlags & ~mask;
 

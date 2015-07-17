@@ -215,14 +215,12 @@ ARGB * Texture::getColorBuffer() const
 
 Color Texture::getTexelColor(const unsigned int x, const unsigned int y) const
 {
-  assert(x >= 0);
   assert(x < width);
-  assert(y >= 0);
   assert(y < height);
 
   // return black Color if x or y out of bounds or gray chess pixels if texture is empty
 
-  if (x < 0 || x >= width || y < 0 || y >= height)
+  if (x >= width || y >= height)
     return Color(0, 0, 0);
   else if(colorBuf.empty())
     return (((x * 50 / width) % 2) ^ ((y * 50 / width) % 2)) ? Color(0.5f, 0.5f, 0.5f) : Color(0.75f, 0.75f, 0.75f);
@@ -272,12 +270,6 @@ Color Texture::getTexelColor(const float u, const float v) const
 
 void Texture::resize(unsigned int width, unsigned int height)
 {
-  assert(width >= 0);
-  assert(height >= 0);
-
-  if (width < 0 || height < 0)
-    width = height = 0;
-
   this->width = width;
   this->height = height;
   colorBuf.resize(width * height);

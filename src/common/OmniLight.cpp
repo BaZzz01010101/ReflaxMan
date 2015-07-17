@@ -5,11 +5,19 @@ OmniLight::OmniLight()
 {
 }
 
-OmniLight::OmniLight(const OmniLight & l)
+OmniLight::OmniLight(const Vector3 & origin, const float radius, const Color & color, const float power) :
+  origin(origin),
+  color(color)
 {
-  origin = l.origin;
+  this->radius = radius;
+  this->power = clamp(power, 0.0f, 1.0f);
+}
+
+OmniLight::OmniLight(const OmniLight & l) :
+origin(l.origin),
+color(l.color)
+{
   radius = l.radius;
-  color = l.color;
   power = l.power;
 }
 
@@ -21,14 +29,6 @@ OmniLight & OmniLight::operator = (const OmniLight & l)
   power = l.power;
 
   return *this;
-}
-
-OmniLight::OmniLight(const Vector3 & origin, const float radius, const Color & color, const float power)
-{
-  this->origin = origin;
-  this->radius = radius;
-  this->color = color;
-  this->power = clamp(power, 0.0f, 1.0f);
 }
 
 OmniLight::~OmniLight()

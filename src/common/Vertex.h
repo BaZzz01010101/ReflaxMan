@@ -9,10 +9,9 @@ public:
   float tv;
 
   Vertex();
-  Vertex(const Vertex & vert);
   Vertex(const Vector3 & v, const float tu, const float tv);
-  ~Vertex();
-
+  Vertex(const Vertex & vert);
   Vertex & operator =(const Vertex & vert);
+  ~Vertex();
 };
 
