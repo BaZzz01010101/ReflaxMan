@@ -87,6 +87,15 @@
     <ClInclude Include="..\src\common\trace_math.h">
       <Filter>Header Files\common</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\common\Pulse.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\common\BasePlatformInterface.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\windows\WindowsPlatformInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\common\Camera.cpp">
@@ -148,6 +157,15 @@
     </ClCompile>
     <ClCompile Include="..\src\common\trace_math.cpp">
       <Filter>Source Files\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\Pulse.cpp">
+      <Filter>Source Files\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\BasePlatformInterface.cpp">
+      <Filter>Source Files\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\windows\WindowsPlatformInterface.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

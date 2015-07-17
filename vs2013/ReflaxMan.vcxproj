@@ -165,6 +165,8 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\src\common\BasePlatformInterface.h" />
+    <ClInclude Include="..\src\common\Pulse.h" />
     <ClInclude Include="..\src\common\trace_math.h" />
     <ClInclude Include="..\src\common\Color.h" />
     <ClInclude Include="..\src\common\image_headers.h" />
@@ -186,8 +188,11 @@
     <ClInclude Include="..\src\common\Vertex.h" />
     <ClInclude Include="..\src\common\defaults.h" />
     <ClInclude Include="..\src\windows\stdafx.h" />
+    <ClInclude Include="..\src\windows\WindowsPlatformInterface.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\common\BasePlatformInterface.cpp" />
+    <ClCompile Include="..\src\common\Pulse.cpp" />
     <ClCompile Include="..\src\common\trace_math.cpp" />
     <ClCompile Include="..\src\common\Color.cpp" />
     <ClCompile Include="..\src\common\Matrix44.cpp" />
@@ -208,6 +213,7 @@
     <ClCompile Include="..\src\common\Vertex.cpp" />
     <ClCompile Include="..\src\windows\Main.cpp" />
     <ClCompile Include="..\src\windows\stdafx.cpp" />
+    <ClCompile Include="..\src\windows\WindowsPlatformInterface.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />

@@ -1,16 +1,14 @@
 #pragma once
-#ifdef _MSC_VER
-#pragma warning(disable: 4996)
-#endif
-
 #include <assert.h>
 #include <memory.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdarg.h>
 #include <float.h>
-#define _USE_MATH_DEFINES
-#include <cmath>
 #include <string>
+#define _USE_MATH_DEFINES
+#include <math.h>
 
 #include "Vector3.h"
 

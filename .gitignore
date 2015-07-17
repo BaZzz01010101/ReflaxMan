@@ -152,8 +152,8 @@ $RECYCLE.BIN/
 .DS_Store
 
 #Project specific
-/textures/
-/build/*.bmp
+textures/
+build/*.bmp
 *.7z
 *.rar
 *.zip

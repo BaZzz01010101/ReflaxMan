@@ -2,6 +2,11 @@
 #include "Texture.h"
 #include "image_headers.h"
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4996)
+#endif
+
 
 Texture::Texture()
 {
@@ -284,3 +289,7 @@ void Texture::clear(ARGB bkColor)
     for (ARGB * pCol = &colorBuf.front(), *lastPCol = &colorBuf.back(); pCol <= lastPCol; ++pCol)
       *pCol = bkColor;
 }
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif

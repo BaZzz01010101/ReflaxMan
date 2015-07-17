@@ -1,5 +1,10 @@
 #pragma once
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4201)
+#endif
+
 class Vector3;
 
 class Matrix33
@@ -56,4 +61,6 @@ public:
   static Matrix33 makeRotation(const float yaw, const float pitch);
 };
 
-
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
