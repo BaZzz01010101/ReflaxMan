@@ -162,9 +162,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="..\src\common\BasePlatformInterface.h" />
     <ClInclude Include="..\src\common\Pulse.h" />
     <ClInclude Include="..\src\common\trace_math.h" />
