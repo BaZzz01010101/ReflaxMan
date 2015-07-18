@@ -106,8 +106,8 @@ Color Render::imagePixel(int x, int y) const
   assert(y >= 0);
 
   if (x >= 0 && y >= 0)
-    return additiveCounter > 1 ? 
-           image[x + y * imageWidth] / float(additiveCounter) : 
+    return additiveCounter > 1 ?
+           image[x + y * imageWidth] / float(additiveCounter) :
            image[x + y * imageWidth];
   else
     return Color(0, 0, 0);
@@ -137,12 +137,12 @@ bool Render::renderNext(unsigned int pixels)
 {
   assert(pixels);
   assert(inProgress);
-  assert(curx < imageWidth);
-  assert(cury < imageHeight);
+  assert(!curx || curx < imageWidth);
+  assert(!cury || cury < imageHeight);
 
   if (!pixels || !inProgress || curx >= imageWidth || cury >= imageHeight)
     return false;
-  
+
   const Vector3 origin = renderCameraEye;
   const float sqRenderSampleNum = float(renderSampleNum * renderSampleNum);
   const float rz = float(imageWidth) / 2.0f / tanf(camera.fov / 2.0f);
@@ -221,6 +221,6 @@ void Render::renderAll(int reflectNum, int sampleNum, bool additive)
 }
 
 float Render::getRenderProgress() const
-{ 
+{
   return float(curx + cury * imageWidth) * 100.0f / imageWidth / imageHeight;
 }

@@ -39,7 +39,7 @@ Pulse::Pulse(BasePlatformInterface * platformInterface) :
 {
   plint = platformInterface;
   perfFreq = plint->getPerformanceFrequency();
-  setState(stCameraControl);
+  state = stInit;
   controlFlags = 0;
   imageReady = false;
   frameTimeAccumulator = 0.0f;
@@ -225,6 +225,9 @@ void Pulse::exec()
 {
   switch (state)
   {
+  case stInit:
+    plint->sleep(10);
+    break;
   case stCameraControl:
     proceedControl();
     renderImage();
@@ -432,9 +435,16 @@ void Pulse::onKeyEvent(KEY_CODE key, bool isPressed)
 
 void Pulse::onResize(unsigned int width, unsigned int height)
 {
-  if (state == stCameraControl)
+  switch(state)
   {
-    render.setImageSize(width, height);
+    case stInit:
+      setState(stCameraControl);
+      //nobreak !
+    case stCameraControl:
+      render.setImageSize(width, height);
+      break;
+    default:
+      break;
   }
 }
 

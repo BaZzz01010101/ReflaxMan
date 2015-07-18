@@ -5,7 +5,7 @@
 
 enum PULSE_STATE
 {
-  stUnknown,
+  stInit,
   stCameraControl,
   stScreenshotResolutionSelection,
   stScreenshotSamplingSelection,
@@ -49,13 +49,13 @@ struct Resolution
   int w;
   int h;
   const char * tip;
-}; 
+};
 
 struct SsRate
 {
   int rate;
   const char * tip;
-}; 
+};
 
 class Pulse
 {

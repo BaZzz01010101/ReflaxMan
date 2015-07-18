@@ -10,8 +10,8 @@
 
 LinuxPlatformInterface::LinuxPlatformInterface(Display * dsp, Window win)
 {
-  dsp = NULL;
-  win = 0;
+  this->dsp = dsp;
+  this->win = win;
 }
 
 
