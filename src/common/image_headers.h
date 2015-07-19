@@ -1,3 +1,4 @@
+#include <stdint.h>
 #pragma pack(push, 1)
 
 struct TGAFileHeader

@@ -8,7 +8,25 @@ You can interactively control camera with keyboard and save render to the BMP fi
 Project support windows and linux platforms. 
 Visual Studio and Code::Blocks files included.
 
-#Screenshots
+#Performance 
 
+(Intel Core2 Duo E8400 @ 3.0 GHz / default window size and camera view)
+
+Windows 7 x64 / Visual Studio 2013
+  
+- Win32 : 486 ms/frame
+    
+- x64 : 336 ms/frame
+    
+Windows 7 x64 / g++
+  
+- x64 : 553 ms/frame
+    
+Kubuntu-15.04-desktop-amd64 / g++
+  
+- amd64 : 598 ms/frame
+    
+    
+#Screenshot
 1920x1080 with 128x128 SSAA:
 [<img src="https://raw.githubusercontent.com/BaZzz01010101/ReflaxMan/master/scrnshoot.jpg" />](https://raw.githubusercontent.com/BaZzz01010101/ReflaxMan/master/scrnshoot.jpg)

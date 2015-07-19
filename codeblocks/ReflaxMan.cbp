@@ -15,7 +15,6 @@
 				<Compiler>
 					<Add option="-std=c++0x" />
 					<Add option="-g" />
-					<Add option="-Wmultichar" />
 				</Compiler>
 				<Linker>
 					<Add option="-lX11" />
@@ -31,7 +30,6 @@
 					<Add option="-fexpensive-optimizations" />
 					<Add option="-O3" />
 					<Add option="-std=c++0x" />
-					<Add option="-Wmultichar" />
 					<Add option="-DNDEBUG" />
 				</Compiler>
 				<Linker>

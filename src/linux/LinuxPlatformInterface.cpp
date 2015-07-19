@@ -1,8 +1,8 @@
 #include <X11/Xlib.h>
-#include <X11/X.h>
 #include <limits.h>
 #include <vector>
 #include <unistd.h>
+#include <stdint.h>
 #include <string.h>
 
 #include "LinuxPlatformInterface.h"
