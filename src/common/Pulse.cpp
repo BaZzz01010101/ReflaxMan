@@ -9,7 +9,6 @@
 
 static Resolution res[9] =
 {
-  { 640, 480, "(4:3)", },
   { 800, 600, "(4:3)", },
   { 1024, 768, "(4:3)", },
   { 1280, 960, "(4:3)", },
@@ -18,6 +17,7 @@ static Resolution res[9] =
   { 1920, 1200, "(16:10)", },
   { 1280, 720, "(HD)", },
   { 1920, 1080, "(Full HD)", },
+  { 7680, 4320, "(Super Hi Vision 16:9)", },
 };
 
 static SsRate ss[9] =
@@ -64,9 +64,13 @@ std::string Pulse::format(const char* format, ...)
   va_list args;
   va_start(args, format);
   size_t str_size = 1 + vsnprintf(0, 0, format, args);
+  va_end(args);
+
   if (str_size > buf.size())
     buf.resize(str_size);
+
   char * buffer = &buf.front();
+  va_start(args, format);
   vsnprintf(buffer, str_size, format, args);
   va_end(args);
 
