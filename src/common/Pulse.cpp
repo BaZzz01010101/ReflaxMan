@@ -271,6 +271,7 @@ std::vector<std::string> * Pulse::getCurrentScreenText()
   switch (state)
   {
   case stCameraControl:
+    screenText.push_back(format("Resolution : %ix%i", render.imageWidth, render.imageHeight));
     if (frameTime < 10)
       screenText.push_back(format("Frame time: %.0f ms", frameTime * 1000));
     else

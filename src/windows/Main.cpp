@@ -275,6 +275,10 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     plint = new WindowsPlatformInterface(hWnd);
     pulse = new Pulse(plint);
 
+    RECT crect;
+    GetClientRect(hWnd, &crect);
+    SetWindowPos(hWnd, 0, 0, 0, 640 + (640 - crect.right), 480 + (480 - crect.bottom), SWP_NOZORDER | SWP_NOMOVE | SWP_ASYNCWINDOWPOS);
+
     ShowWindow(hWnd, nCmdShow);
     UpdateWindow(hWnd);
 
