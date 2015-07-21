@@ -4,6 +4,8 @@
 Triangle::Triangle()
 {
   texture = NULL;
+  memset(tu, 0, sizeof(tu));
+  memset(tv, 0, sizeof(tu));
 }
 
 Triangle::Triangle(const Vector3 & v0, const Vector3 & v1, const Vector3 & v2, const Material & material) :

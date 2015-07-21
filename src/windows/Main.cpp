@@ -257,7 +257,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
   wcex.hInstance = hInstance;
   wcex.hIcon = NULL;
   wcex.hCursor = NULL;
-  wcex.hbrBackground = (HBRUSH)CreateSolidBrush(0xFF80FF);
+  wcex.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
   wcex.lpszMenuName = NULL;
   wcex.lpszClassName = "clReflaxWindow";
   wcex.hIconSm = NULL;

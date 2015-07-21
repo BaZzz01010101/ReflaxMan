@@ -154,6 +154,7 @@ $RECYCLE.BIN/
 #Project specific
 textures/
 build/*.bmp
+cmake/
 *.7z
 *.rar
 *.zip
@@ -162,3 +163,4 @@ build/*.bmp
 *.depend
 *.layout
 *.cppcheck
+cmakeit.bat

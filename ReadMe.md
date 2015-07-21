@@ -18,11 +18,11 @@ Windows 7 x64 / Visual Studio 2013
     
 - x64 : 368 ms/frame
     
-Windows 7 x64 / g++
+Windows 7 x64 / g++ (MinGW x86_64-5.1.0)
   
 - x64 : 580 ms/frame
     
-Kubuntu-15.04-desktop-amd64 / g++
+Kubuntu-15.04-desktop-amd64 / g++ (4.8.4)
   
 - amd64 : 598 ms/frame
     
