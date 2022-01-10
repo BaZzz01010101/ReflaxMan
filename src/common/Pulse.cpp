@@ -222,7 +222,6 @@ void Pulse::screenshotRenderEnd()
     render.setImageSize(clWidth, clHeight);
   else
     render.setImageSize(1, 1);
-
 }
 
 void Pulse::exec()
